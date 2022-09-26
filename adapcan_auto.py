@@ -309,7 +309,7 @@ def writeConf(adpKeys):
 
 def autoTune(mcu, ch, adpKey, cntwin):   # 自動制御メソッド
   # プログラム検証用のexcel出力リスト
-  iterationList = list(range(1,33+1))
+  iterationList = list(range(34))   # 0 ~ 33のイテレーションリストを作成
   phaseList = []
   dcpowerList = []
   
@@ -321,18 +321,21 @@ def autoTune(mcu, ch, adpKey, cntwin):   # 自動制御メソッド
   else:
     pv = pw
   
-  attphaseString = "Att: %3.1f dB  Phase: %4d iteration: " %((adpKey.att/2), adpKey.phase, i)
-  cntwin.addstr(4,10,attphaseString)
-  cntwin.refresh()
-  
   phaseList.append(adpKey.phase)
   dcpowerList.append(pv)
+  attphaseString = "Att: %3.1f dB  Phase: %4d iteration: 0" %((adpKey.att/2), adpKey.phase)
+  cntwin.addstr(4,10,attphaseString)
+  cntwin.refresh()
   
   for i in range(32):
     if adpKey.phase + 130 > 4095:
       adpKey.phase = 0
     else:
       adpKey.phase = min(4095,adpKey.phase + 130)
+    
+    attphaseString = "Att: %3.1f dB  Phase: %4d iteration: %d" %((adpKey.att/2), adpKey.phase, i+1)
+    cntwin.addstr(4,10,attphaseString)
+    cntwin.refresh()
     
     # 位相を動かす
     th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
@@ -345,6 +348,8 @@ def autoTune(mcu, ch, adpKey, cntwin):   # 自動制御メソッド
       cv = pwa   # 現在のDC power
     else:
       cv = pw
+    phaseList.append(adpKey.phase)
+    dcpowerList.append(cv)
     if cv < pv:
       if AVERAGING == "True":
         pv = pwa
@@ -352,7 +357,7 @@ def autoTune(mcu, ch, adpKey, cntwin):   # 自動制御メソッド
         pv = pw
       minvalues = adpKey.phase
       
-  attphaseString = "Att: %3.1f dB  Phase: %4d " %((adpKey.att/2), adpKey.phase)
+  attphaseString = "Att: %3.1f dB  Phase: %4d " %((adpKey.att/2), adpKey.phase, i+1)
   cntwin.addstr(4,10,attphaseString)
   df = pd.DataFrame([iterationList, phaseList, dcpowerList], index=['iteration', 'phase', 'DC power'])
   df.to_excel('/home/kait/Documents/adapcan2_kwkt-lab', sheet_name='autoTune_sheet')
