@@ -12,6 +12,7 @@ import re
 import serial
 import select
 import curses
+import pandas as pd
 #import spi
 from saml21 import Saml21
 from ringBuffer import ringBuffer
@@ -307,6 +308,11 @@ def writeConf(adpKeys):
         f.close 
 
 def autoTune(mcu, ch, adpKey, cntwin):   # 自動制御メソッド
+  # プログラム検証用のexcel出力リスト
+  iterationList = list(range(1,33+1))
+  phaseList = []
+  dcpowerList = []
+  
   startString = "phaseの自動調整を開始"
   cntwin.addstr(9,5,startString)
   cntwin.refresh()
@@ -314,16 +320,19 @@ def autoTune(mcu, ch, adpKey, cntwin):   # 自動制御メソッド
     pv = pwa   # 最小のDC power
   else:
     pv = pw
-    
+  
+  attphaseString = "Att: %3.1f dB  Phase: %4d iteration: " %((adpKey.att/2), adpKey.phase, i)
+  cntwin.addstr(4,10,attphaseString)
+  cntwin.refresh()
+  
+  phaseList.append(adpKey.phase)
+  dcpowerList.append(pv)
+  
   for i in range(32):
-    attphaseString = "Att: %3.1f dB  Phase: %4d iteration: " %((adpKey.att/2), adpKey.phase, i)
-    cntwin.addstr(4,10,attphaseString)
-    cntwin.refresh()
-    # time.sleep(3)   # テスト用タイマー
     if adpKey.phase + 130 > 4095:
       adpKey.phase = 0
     else:
-      adpKey.phase = min(4095,adpKey.phase + 130);
+      adpKey.phase = min(4095,adpKey.phase + 130)
     
     # 位相を動かす
     th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
@@ -342,9 +351,10 @@ def autoTune(mcu, ch, adpKey, cntwin):   # 自動制御メソッド
       else:
         pv = pw
       minvalues = adpKey.phase
-    
+      
   attphaseString = "Att: %3.1f dB  Phase: %4d " %((adpKey.att/2), adpKey.phase)
   cntwin.addstr(4,10,attphaseString)
+  df = pd.DataFrame([iterationList, phaseList, dcpowerList], index=['iteration', 'phase', 'DC power'])
   endString = "phaseの自動調整を終了, 最小値: %4d qを押してください" %(minvalues)
   cntwin.addstr(9,30,endString)
   cntwin.refresh()
