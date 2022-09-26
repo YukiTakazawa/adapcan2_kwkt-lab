@@ -312,6 +312,7 @@ def autoTune(mcu, ch, adpKey, cntwin):   # 自動制御メソッド
   iterationList = list(range(34))   # 0 ~ 33のイテレーションリストを作成
   phaseList = []
   dcpowerList = []
+  global minvalues
   
   startString = "phaseの自動調整を開始"
   cntwin.addstr(9,5,startString)
@@ -321,6 +322,7 @@ def autoTune(mcu, ch, adpKey, cntwin):   # 自動制御メソッド
   else:
     pv = pw
   
+  minvalues = adpKey.phase
   phaseList.append(adpKey.phase)
   dcpowerList.append(pv)
   attphaseString = "Att: %3.1f dB  Phase: %4d iteration: 0" %((adpKey.att/2), adpKey.phase)
