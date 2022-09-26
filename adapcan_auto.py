@@ -355,6 +355,7 @@ def autoTune(mcu, ch, adpKey, cntwin):   # 自動制御メソッド
   attphaseString = "Att: %3.1f dB  Phase: %4d " %((adpKey.att/2), adpKey.phase)
   cntwin.addstr(4,10,attphaseString)
   df = pd.DataFrame([iterationList, phaseList, dcpowerList], index=['iteration', 'phase', 'DC power'])
+  df.to_excel('/home/kait/Documents/adapcan2', sheet_name='autoTune_sheet')
   endString = "phaseの自動調整を終了, 最小値: %4d qを押してください" %(minvalues)
   cntwin.addstr(9,30,endString)
   cntwin.refresh()
