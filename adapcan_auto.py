@@ -318,24 +318,25 @@ def autoTune(mcu, ch, adpKey, cntwin):   # 自動制御メソッド
   pvList = []
   minphaseList = []
   
+  attphaseString = "Att: %3.1f dB  Phase: %4d iteration: 0" %((adpKey.att/2), adpKey.phase)
+  cntwin.addstr(4,10,attphaseString)
   startString = "phaseの自動調整を開始"
   cntwin.addstr(9,5,startString)
   cntwin.refresh()
+  
+  # 初期化設定
   if AVERAGING == "True":
-    pv = pwa   # 最小のDC powerの初期化
+    pv = pwa   # 現在のphaseとatt設定で最小DC powerを初期化
   else:
     pv = pw
+  minphase = adpKey.phase   # 最小のphase値を初期化
   
-  minphase = adpKey.phase   # 最小のphase値の初期化
-  minphaseList.append(minphase)
   phaseList.append(adpKey.phase)
+  dcpowerList.append(pv)
   cvList.append(0)
   pvList.append(pv)
-  
-  dcpowerList.append(pv)
-  attphaseString = "Att: %3.1f dB  Phase: %4d iteration: 0" %((adpKey.att/2), adpKey.phase)
-  cntwin.addstr(4,10,attphaseString)
-  cntwin.refresh()
+  minphaseList.append(minphase)
+
   
   for i in range(32):
     if adpKey.phase + 130 > 4095:
@@ -364,11 +365,8 @@ def autoTune(mcu, ch, adpKey, cntwin):   # 自動制御メソッド
     cvList.append(cv)
     pvList.append(pv)
     
-    if cv > pv:
-      if AVERAGING == "True":
-        pv = pwa
-      else:
-        pv = pw
+    if cv < pv:
+      pv = cv
       minphase = adpKey.phase
     minphaseList.append(minphase)
   attphaseString = "Att: %3.1f dB  Phase: %4d iteration: %d" %((adpKey.att/2), adpKey.phase, i+1)
@@ -382,7 +380,7 @@ def autoTune(mcu, ch, adpKey, cntwin):   # 自動制御メソッド
   # 最小のphase値探索の検証excelを出力
   df = pd.DataFrame([iterationList, phaseList, dcpowerList], index=['iteration', 'phase', 'DC power'])
   df.to_excel('/home/kait/Documents/adapcan2_kwkt-lab/autoTune'+str(dt)+'.xlsx')
-  endString = "phaseの自動調整を終了, 最小値: %4d qを押してください" %(minphase)
+  endString = "phaseの自動調整を終了, 最小値: %4d, DC power: %.2f qを押してください" %(minphase, pv)
   cntwin.addstr(9,30,endString)
   cntwin.refresh()
   x = cntwin.getch()
