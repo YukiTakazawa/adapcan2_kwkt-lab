@@ -12,7 +12,6 @@ import re
 import serial
 import select
 import curses
-import pandas as pd
 #import spi
 from saml21 import Saml21
 from ringBuffer import ringBuffer
@@ -20,7 +19,9 @@ from ringBuffer import adapcanKeys
 import RPi.GPIO as GPIO
 from curses.textpad import Textbox, rectangle
 import json
-#
+#import excel
+import pandas as pd
+import datetime
 
 # after the execution of main retrieve the original stty 
 @contextlib.contextmanager
@@ -309,10 +310,9 @@ def writeConf(adpKeys):
 
 def autoTune(mcu, ch, adpKey, cntwin):   # 自動制御メソッド
   # プログラム検証用のexcel出力リスト
-  iterationList = list(range(34))   # 0 ~ 33のイテレーションリストを作成
+  iterationList = list(range(33))   # 0 ~ 32のイテレーションリストを作成
   phaseList = []
   dcpowerList = []
-  global minvalues
   
   startString = "phaseの自動調整を開始"
   cntwin.addstr(9,5,startString)
@@ -322,7 +322,7 @@ def autoTune(mcu, ch, adpKey, cntwin):   # 自動制御メソッド
   else:
     pv = pw
   
-  minvalues = adpKey.phase
+  minphase = adpKey.phase
   phaseList.append(adpKey.phase)
   dcpowerList.append(pv)
   attphaseString = "Att: %3.1f dB  Phase: %4d iteration: 0" %((adpKey.att/2), adpKey.phase)
@@ -357,14 +357,15 @@ def autoTune(mcu, ch, adpKey, cntwin):   # 自動制御メソッド
         pv = pwa
       else:
         pv = pw
-      minvalues = adpKey.phase
+      minphase = adpKey.phase
       
   attphaseString = "Att: %3.1f dB  Phase: %4d iteration: %d" %((adpKey.att/2), adpKey.phase, i+1)
   cntwin.addstr(4,10,attphaseString)
   df = pd.DataFrame([iterationList, phaseList, dcpowerList], index=['iteration', 'phase', 'DC power'])
-  ut = time.time()
-  df.to_excel('/home/kait/Documents/adapcan2_kwkt-lab/autoTune'+str(int(ut))+'.xlsx')
-  endString = "phaseの自動調整を終了, 最小値: %4d qを押してください" %(minvalues)
+  t = time.time()
+  dt = datetime.datetime.fromtimestamp(t)
+  df.to_excel('/home/kait/Documents/adapcan2_kwkt-lab/autoTune'+str(dt)+'.xlsx')
+  endString = "phaseの自動調整を終了, 最小値: %4d qを押してください" %(minphase)
   cntwin.addstr(9,30,endString)
   cntwin.refresh()
   x = cntwin.getch()
