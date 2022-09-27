@@ -315,6 +315,7 @@ def writeConf(adpKeys):
 def autoTune(mcu, ch, adpKey, cntwin):   # 自動制御メソッド
   if PHASETUNE == "True":
     autoTune_phase(mcu, ch, adpKey, cntwin);
+    cntwin.addstr(5,5,str(time_phase))
   else:
     phase_skipString = "phaseの自動調整をスキップしました"
     cntwin.addstr(4,10, phase_skipString)
@@ -322,6 +323,7 @@ def autoTune(mcu, ch, adpKey, cntwin):   # 自動制御メソッド
   time.sleep(2)
   if ATTTUNE == "True":
     autoTune_att(mcu, ch, adpKey, cntwin);
+    cntwin.addstr(6,5,str(time_phase))
   else:
     att_skipString = "attの自動調整をスキップしました"
     cntwin.addstr(4,10, att_skipString)
@@ -337,6 +339,7 @@ def autoTune(mcu, ch, adpKey, cntwin):   # 自動制御メソッド
 
 def autoTune_phase(mcu, ch, adpKey, cntwin):
   global minphase
+  global time_phase
   # 最小phase探索の検証用のexcel出力リスト
   iterationList = list(range(32))   # 0 ~ 32のイテレーションリストを作成
   phaseList = []
@@ -418,6 +421,7 @@ def autoTune_phase(mcu, ch, adpKey, cntwin):
 
 def autoTune_att(mcu, ch, adpKey, cntwin):
   global minatt
+  global time_att
   # 最小phase探索の検証用のexcel出力リスト
   iterationList = list(range(62))   # 0 ~ 32のイテレーションリストを作成
   attList = []
