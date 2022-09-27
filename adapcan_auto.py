@@ -322,11 +322,11 @@ def autoTune(mcu, ch, adpKey, cntwin):   # 自動制御メソッド
   cntwin.addstr(9,5,startString)
   cntwin.refresh()
   if AVERAGING == "True":
-    pv = pwa   # 最小のDC power
+    pv = pwa   # 最小のDC powerの初期化
   else:
     pv = pw
   
-  minphase = adpKey.phase
+  minphase = adpKey.phase   # 最小のphase値の初期化
   minphaseList.append(minphase)
   phaseList.append(adpKey.phase)
   cvList.append(0)
@@ -358,11 +358,13 @@ def autoTune(mcu, ch, adpKey, cntwin):   # 自動制御メソッド
       cv = pwa   # 現在のDC power
     else:
       cv = pw
+      
     phaseList.append(adpKey.phase)
     dcpowerList.append(cv)
     cvList.append(cv)
     pvList.append(pv)
-    if cv < pv:
+    
+    if cv > pv:
       if AVERAGING == "True":
         pv = pwa
       else:
