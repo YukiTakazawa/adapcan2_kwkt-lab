@@ -323,7 +323,7 @@ def autoTune(mcu, ch, adpKey, cntwin):   # 自動制御メソッド
   time.sleep(2)
   if ATTTUNE == "True":
     autoTune_att(mcu, ch, adpKey, cntwin);
-    cntwin.addstr(6,5,str(time_phase))
+    cntwin.addstr(6,5,str(time_att))
   else:
     att_skipString = "attの自動調整をスキップしました"
     cntwin.addstr(4,10, att_skipString)
