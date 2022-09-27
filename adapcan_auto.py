@@ -342,7 +342,7 @@ def autoTune(mcu, ch, adpKey, cntwin):   # 自動制御メソッド
   
   phaseList.append(adpKey.phase)
   dcpowerList.append(pv)
-  cvList.append(0)
+  cvList.append('0')
   pvList.append(pv)
   minphaseList.append(minphase)
 
@@ -374,7 +374,7 @@ def autoTune(mcu, ch, adpKey, cntwin):   # 自動制御メソッド
     cvList.append(cv)
     pvList.append(pv)
     
-    if cv > pv:
+    if float(cv) < float(pv):
       pv = cv
       minphase = adpKey.phase
     minphaseList.append(minphase)
