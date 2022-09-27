@@ -309,15 +309,6 @@ def writeConf(adpKeys):
         f.close 
 
 def autoTune(mcu, ch, adpKey, cntwin):   # 自動制御メソッド
-  global cv
-  global pv
-  global minphase
-  global iterationList
-  global phaseList
-  global dcpowerList
-  global cvList
-  global pvList
-  global minphaseList
   # プログラム検証用のexcel出力リスト
   iterationList = list(range(32))   # 0 ~ 32のイテレーションリストを作成
   phaseList = []
