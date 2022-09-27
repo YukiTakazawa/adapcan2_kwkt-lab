@@ -380,7 +380,7 @@ def autoTune(mcu, ch, adpKey, cntwin):   # 自動制御メソッド
   # 最小のphase値探索の検証excelを出力
   df = pd.DataFrame([iterationList, phaseList, dcpowerList], index=['iteration', 'phase', 'DC power'])
   df.to_excel('/home/kait/Documents/adapcan2_kwkt-lab/autoTune'+str(dt)+'.xlsx')
-  endString = "phaseの自動調整を終了, 最小値: %4d, DC power: %.2f qを押してください" %(minphase, pv)
+  endString = "phaseの自動調整を終了, 最小値: %4d qを押してください" %(minphase)
   cntwin.addstr(9,30,endString)
   cntwin.refresh()
   x = cntwin.getch()
