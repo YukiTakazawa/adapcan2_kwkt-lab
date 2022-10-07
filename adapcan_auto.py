@@ -438,6 +438,8 @@ def autoTune_phase(mcu, ch, adpKey, cntwin):
   # time_phase = time_end - time_sta
   
   # 最小のphase値探索の検証用
+  t = time.time()
+  dt = datetime.datetime.fromtimestamp(t)
   debug_phase = pd.DataFrame([iterationList, phaseList, dcpowerList, cvList, pvList, minphaseList], 
                              index=['iteration', 'phase', 'DC power', 'cv', 'pv', 'minphase'])
   debug_phase.to_excel('/home/kait/Documents/adapcan2_kwkt-lab/debug_phase'+str(dt)+'.xlsx')
