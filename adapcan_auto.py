@@ -344,11 +344,11 @@ def autoTune(mcu, ch, adpKey, cntwin):   # 自動制御メソッド
     # 最小のphase値探索の検証excelを出力
     with pd.ExcelWriter('DebugFile'+str(dt)+'.xlsx') as writer:
       # if PHASETUNE == "True":
-        # debug_phase.to_excel(writer, sheet_name='phaseDebug')
+        debug_phase.to_excel(writer, sheet_name='phaseDebug')
         # debug_phase.to_excel('/home/kait/Documents/adapcan2_kwkt-lab/debug_phase'+str(dt)+'.xlsx')
       if ATTTUNE == "True":
-        # debug_att.to_excel(writer, sheet_name='attDebug')
-        debug_att.to_excel('/home/kait/Documents/adapcan2_kwkt-lab/debug_att'+str(dt)+'.xlsx')
+        debug_att.to_excel(writer, sheet_name='attDebug')
+        # debug_att.to_excel('/home/kait/Documents/adapcan2_kwkt-lab/debug_att'+str(dt)+'.xlsx')
   
   x = cntwin.getch()
   if chr(x) == 'q':
@@ -442,7 +442,7 @@ def autoTune_phase(mcu, ch, adpKey, cntwin):
   dt = datetime.datetime.fromtimestamp(t)
   debug_phase = pd.DataFrame([iterationList, phaseList, dcpowerList, cvList, pvList, minphaseList], 
                              index=['iteration', 'phase', 'DC power', 'cv', 'pv', 'minphase'])
-  debug_phase.to_excel('/home/kait/Documents/adapcan2_kwkt-lab/debug_phase'+str(dt)+'.xlsx')
+  # debug_phase.to_excel('/home/kait/Documents/adapcan2_kwkt-lab/debug_phase'+str(dt)+'.xlsx')
   
   """
   if DEBUG == "True":
