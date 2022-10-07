@@ -316,10 +316,6 @@ def writeConf(adpKeys):
         f.close 
 
 def autoTune(mcu, ch, adpKey, cntwin):   # 自動制御メソッド
-  if DEBUG == "True":
-    global debug_phase
-    global debug_att
-    
   if PHASETUNE == "True":
     autoTune_phase(mcu, ch, adpKey, cntwin);
     # cntwin.addstr(5,5,str(time_phase))
@@ -344,6 +340,7 @@ def autoTune(mcu, ch, adpKey, cntwin):   # 自動制御メソッド
   if DEBUG == "True":
     t = time.time()
     dt = datetime.datetime.fromtimestamp(t)
+    
     # 最小のphase値探索の検証excelを出力
     with pd.ExcelWriter('DebugFile'+str(dt)+'.xlsx') as writer:
       if PHASETUNE == "True":
@@ -352,7 +349,7 @@ def autoTune(mcu, ch, adpKey, cntwin):   # 自動制御メソッド
       if ATTTUNE == "True":
         # debug_att.to_excel(writer, sheet_name='attDebug')
         debug_att.to_excel('/home/kait/Documents/adapcan2_kwkt-lab/debug_att'+str(dt)+'.xlsx')
-      
+  
   x = cntwin.getch()
   if chr(x) == 'q':
     return
@@ -360,6 +357,8 @@ def autoTune(mcu, ch, adpKey, cntwin):   # 自動制御メソッド
 
 def autoTune_phase(mcu, ch, adpKey, cntwin):
   global minphase
+  global debug_phase
+  
   # global time_phase
   # 最小phase探索の検証用のexcel出力リスト
   iterationList = list(range(32))   # 0 ~ 32のイテレーションリストを作成
@@ -463,6 +462,8 @@ def autoTune_phase(mcu, ch, adpKey, cntwin):
 
 def autoTune_att(mcu, ch, adpKey, cntwin):
   global minatt
+  global debug_att
+  
   # global time_att
   # 最小phase探索の検証用のexcel出力リスト
   iterationList = list(range(64))   # 0 ~ 32のイテレーションリストを作成
