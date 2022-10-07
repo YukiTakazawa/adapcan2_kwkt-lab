@@ -343,7 +343,7 @@ def autoTune(mcu, ch, adpKey, cntwin):   # 自動制御メソッド
     
     # 最小のphase値探索の検証excelを出力
     with pd.ExcelWriter('DebugFile'+str(dt)+'.xlsx') as writer:
-      # if PHASETUNE == "True":
+      if PHASETUNE == "True":
         debug_phase.to_excel(writer, sheet_name='phaseDebug')
         # debug_phase.to_excel('/home/kait/Documents/adapcan2_kwkt-lab/debug_phase'+str(dt)+'.xlsx')
       if ATTTUNE == "True":
