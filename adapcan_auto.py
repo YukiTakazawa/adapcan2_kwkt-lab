@@ -316,6 +316,10 @@ def writeConf(adpKeys):
         f.close 
 
 def autoTune(mcu, ch, adpKey, cntwin):   # 自動制御メソッド
+  if DEBUG == "True":
+    global debug_phase
+    global debug_att
+    
   if PHASETUNE == "True":
     autoTune_phase(mcu, ch, adpKey, cntwin);
     # cntwin.addstr(5,5,str(time_phase))
@@ -335,6 +339,18 @@ def autoTune(mcu, ch, adpKey, cntwin):   # 自動制御メソッド
   endString = "自動制御を終了, Phaseを %4d, Attを %3.1fに調整しました\n Qを押してください" %(minphase, minatt/2)
   cntwin.addstr(4,5,endString)
   cntwin.refresh()
+  
+  # auto_Tuneの実行結果を出力(デバッグ用)
+  if DEBUG == "True":
+    t = time.time()
+    dt = datetime.datetime.fromtimestamp(t)
+    # 最小のphase値探索の検証excelを出力
+    with pd.ExcelWriter('DebugFile'+str(dt)+'.xlsx') as writer:
+      if PHASETUNE == "True":
+        debug_phase.to_excel(writer, sheet_name='phaseDebug')
+      if ATTTUNE == "True":
+        debug_att.to_excel(writer, sheet_name='attDebug')
+        
   x = cntwin.getch()
   if chr(x) == 'q':
     return
@@ -350,6 +366,7 @@ def autoTune_phase(mcu, ch, adpKey, cntwin):
   cvList = []
   pvList = []
   minphaseList = []
+  
   
   # time_sta = time.perf_counter()
   
@@ -418,7 +435,12 @@ def autoTune_phase(mcu, ch, adpKey, cntwin):
   
   # time_end = time.perf_counter()
   # time_phase = time_end - time_sta
-
+  
+  # 最小のphase値探索の検証用
+  debug_phase = pd.DataFrame([iterationList, phaseList, dcpowerList, cvList, pvList, minphaseList], 
+                             index=['iteration', 'phase', 'DC power', 'cv', 'pv', 'minphase'])
+  
+  """
   if DEBUG == "True":
     t = time.time()
     dt = datetime.datetime.fromtimestamp(t)
@@ -427,6 +449,7 @@ def autoTune_phase(mcu, ch, adpKey, cntwin):
     debug.to_excel('/home/kait/Documents/adapcan2_kwkt-lab/debug_phase'+str(dt)+'.xlsx')
     df = pd.DataFrame([iterationList, phaseList, dcpowerList], index=['iteration', 'phase', 'DC power'])
     df.to_excel('/home/kait/Documents/adapcan2_kwkt-lab/autoTune_phase'+str(dt)+'.xlsx')
+  """
   
   # 最小のphase値を設定する
   th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, minphase,))
@@ -440,7 +463,7 @@ def autoTune_att(mcu, ch, adpKey, cntwin):
   global minatt
   # global time_att
   # 最小phase探索の検証用のexcel出力リスト
-  iterationList = list(range(62))   # 0 ~ 32のイテレーションリストを作成
+  iterationList = list(range(64))   # 0 ~ 32のイテレーションリストを作成
   attList = []
   dcpowerList = []
   cvList = []
@@ -511,7 +534,12 @@ def autoTune_att(mcu, ch, adpKey, cntwin):
   
   # time_end = time.perf_counter()
   # time_att = time_end - time_sta
-
+  
+  # 最小のatt値探索の検証用
+  debug_att = pd.DataFrame([iterationList, attList, dcpowerList, cvList, pvList, minattList], 
+                             index=['iteration', 'att', 'DC power', 'cv', 'pv', 'minatt'])
+  
+  """
   if DEBUG == "True":
     t = time.time()
     dt = datetime.datetime.fromtimestamp(t)
@@ -520,7 +548,8 @@ def autoTune_att(mcu, ch, adpKey, cntwin):
     debug.to_excel('/home/kait/Documents/adapcan2_kwkt-lab/debug_att'+str(dt)+'.xlsx')
     df = pd.DataFrame([iterationList, attList, dcpowerList], index=['iteration', 'att', 'DC power'])
     df.to_excel('/home/kait/Documents/adapcan2_kwkt-lab/autoTune_att'+str(dt)+'.xlsx')
-  
+  """
+
   # 最小のatt値を設定する
   th = threading.Thread(target=mcu.senddata, args=(ch, minatt, adpKey.phase,))
   th.start()
