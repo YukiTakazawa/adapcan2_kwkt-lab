@@ -318,7 +318,7 @@ def writeConf(adpKeys):
 def autoTune(mcu, ch, adpKey, cntwin):   # 自動制御メソッド
   if PHASETUNE == "True":
     autoTune_phase(mcu, ch, adpKey, cntwin);
-    cntwin.addstr(5,5,str(time_phase))
+    # cntwin.addstr(5,5,str(time_phase))
   else:
     phase_skipString = "phaseの自動調整をスキップしました"
     cntwin.addstr(4,10, phase_skipString)
@@ -326,7 +326,7 @@ def autoTune(mcu, ch, adpKey, cntwin):   # 自動制御メソッド
   time.sleep(2)
   if ATTTUNE == "True":
     autoTune_att(mcu, ch, adpKey, cntwin);
-    cntwin.addstr(6,5,str(time_att))
+    # cntwin.addstr(6,5,str(time_att))
   else:
     att_skipString = "attの自動調整をスキップしました"
     cntwin.addstr(4,10, att_skipString)
@@ -342,7 +342,7 @@ def autoTune(mcu, ch, adpKey, cntwin):   # 自動制御メソッド
 
 def autoTune_phase(mcu, ch, adpKey, cntwin):
   global minphase
-  global time_phase
+  # global time_phase
   # 最小phase探索の検証用のexcel出力リスト
   iterationList = list(range(32))   # 0 ~ 32のイテレーションリストを作成
   phaseList = []
@@ -351,21 +351,30 @@ def autoTune_phase(mcu, ch, adpKey, cntwin):
   pvList = []
   minphaseList = []
   
+  # time_sta = time.perf_counter()
+  
+  # 初期化設定(phase, attともに0からスタート)
+  adpKey.phase = 0
+  adpKey.att = 0
+  
   attphaseString = "Att: %3.1f dB  Phase: %4d iteration: 0" %((adpKey.att/2), adpKey.phase)
   cntwin.addstr(4,10,attphaseString)
   startString = "phaseの自動調整を開始"
   cntwin.addstr(4,5,startString)
   cntwin.refresh()
+  th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
+  th.start()
+  cntwin.refresh()
+  th.join()
+  time.sleep(1)
   
-  time_sta = time.perf_counter()
-  
-  # 初期化設定
   if AVERAGING == "True":
     pv = pwa   # 現在のphaseとatt設定で最小DC powerを初期化
   else:
     pv = pw
   minphase = adpKey.phase   # 最小のphase値を初期化
   
+  # デバッグ用のリスト追加
   phaseList.append(adpKey.phase)
   dcpowerList.append(pv)
   cvList.append('0')
@@ -407,8 +416,8 @@ def autoTune_phase(mcu, ch, adpKey, cntwin):
   attphaseString = "Att: %3.1f dB  Phase: %4d iteration: %d" %((adpKey.att/2), adpKey.phase, i)
   cntwin.addstr(4,10,attphaseString)
   
-  time_end = time.perf_counter()
-  time_phase = time_end - time_sta
+  # time_end = time.perf_counter()
+  # time_phase = time_end - time_sta
 
   if DEBUG == "True":
     t = time.time()
@@ -429,7 +438,7 @@ def autoTune_phase(mcu, ch, adpKey, cntwin):
 
 def autoTune_att(mcu, ch, adpKey, cntwin):
   global minatt
-  global time_att
+  # global time_att
   # 最小phase探索の検証用のexcel出力リスト
   iterationList = list(range(62))   # 0 ~ 32のイテレーションリストを作成
   attList = []
@@ -438,21 +447,27 @@ def autoTune_att(mcu, ch, adpKey, cntwin):
   pvList = []
   minattList = []
   
+  # time_sta = time.perf_counter()
+  
+  # 初期化設定
   attphaseString = "Att: %3.1f dB  Phase: %4d iteration: 0" %((adpKey.att/2), adpKey.phase)
   cntwin.addstr(4,10,attphaseString)
   startString = "attの自動調整を開始"
   cntwin.addstr(9,5,startString)
   cntwin.refresh()
+  th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
+  th.start()
+  cntwin.refresh()
+  th.join()
+  time.sleep(1)
   
-  time_sta = time.perf_counter()
-  
-  # 初期化設定
   if AVERAGING == "True":
     pv = pwa   # 現在のphaseとatt設定で最小DC powerを初期化
   else:
     pv = pw
   minatt = adpKey.att   # 最小のphase値を初期化
   
+  # デバッグ用のリスト追加
   attList.append(adpKey.att)
   dcpowerList.append(pv)
   cvList.append('0')
@@ -460,7 +475,7 @@ def autoTune_att(mcu, ch, adpKey, cntwin):
   minattList.append(minatt)
 
   
-  for i in range(61):
+  for i in range(63):
     if adpKey.att > 62:
       adpKey.att = 0
     else:
@@ -494,8 +509,8 @@ def autoTune_att(mcu, ch, adpKey, cntwin):
   attphaseString = "Att: %3.1f dB  Phase: %4d iteration: %d" %((adpKey.att/2), adpKey.phase, i)
   cntwin.addstr(4,10,attphaseString)
   
-  time_end = time.perf_counter()
-  time_att = time_end - time_sta
+  # time_end = time.perf_counter()
+  # time_att = time_end - time_sta
 
   if DEBUG == "True":
     t = time.time()
