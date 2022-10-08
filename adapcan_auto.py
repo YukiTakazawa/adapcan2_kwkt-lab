@@ -323,7 +323,7 @@ def autoTune(mcu, ch, adpKey, cntwin):   # 自動制御メソッド
     phase_skipString = "phaseの自動調整をスキップしました"
     cntwin.addstr(4,10, phase_skipString)
     cntwin.refresh()
-  time.sleep(2)
+  time.sleep(1)
   if ATTTUNE == "True":
     autoTune_att(mcu, ch, adpKey, cntwin);
     # cntwin.addstr(6,5,str(time_att))
@@ -331,7 +331,7 @@ def autoTune(mcu, ch, adpKey, cntwin):   # 自動制御メソッド
     att_skipString = "attの自動調整をスキップしました"
     cntwin.addstr(4,10, att_skipString)
     cntwin.refresh()
-  time.sleep(2)
+  time.sleep(1)
   endString = "自動制御を終了, Phaseを %4d, Attを %3.1fに調整しました\n Qを押してください" %(minphase, minatt/2)
   cntwin.addstr(4,5,endString)
   cntwin.refresh()
@@ -381,7 +381,7 @@ def autoTune_phase(mcu, ch, adpKey, cntwin):
   th.start()
   cntwin.refresh()
   th.join()
-  time.sleep(2)
+  time.sleep(1)
   
   if AVERAGING == "True":
     pv = pwa   # 現在のphaseとatt設定で最小DC powerを初期化
@@ -412,7 +412,7 @@ def autoTune_phase(mcu, ch, adpKey, cntwin):
     th.start()
     cntwin.refresh()
     th.join()
-    time.sleep(2)
+    time.sleep(1)
     
     if AVERAGING == "True":
       cv = pwa   # 現在のDC power
@@ -445,7 +445,7 @@ def autoTune_phase(mcu, ch, adpKey, cntwin):
   th.start()
   cntwin.refresh()
   th.join()
-  time.sleep(2)
+  time.sleep(1)
   return
 
 def autoTune_att(mcu, ch, adpKey, cntwin):
@@ -473,7 +473,7 @@ def autoTune_att(mcu, ch, adpKey, cntwin):
   th.start()
   cntwin.refresh()
   th.join()
-  time.sleep(2)
+  time.sleep(1)
   
   if AVERAGING == "True":
     pv = pwa   # 現在のphaseとatt設定で最小DC powerを初期化
@@ -504,7 +504,7 @@ def autoTune_att(mcu, ch, adpKey, cntwin):
     th.start()
     cntwin.refresh()
     th.join()
-    time.sleep(2)
+    time.sleep(1)
     
     if AVERAGING == "True":
       cv = pwa   # 現在のDC power
@@ -535,7 +535,7 @@ def autoTune_att(mcu, ch, adpKey, cntwin):
   th.start()
   cntwin.refresh()
   th.join()
-  time.sleep(2)
+  time.sleep(1)
   return
 
 if __name__ == '__main__':
