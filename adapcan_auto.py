@@ -381,7 +381,7 @@ def autoTune_phase(mcu, ch, adpKey, cntwin):
   th.start()
   cntwin.refresh()
   th.join()
-  time.sleep(1)
+  time.sleep(2)
   
   if AVERAGING == "True":
     pv = pwa   # 現在のphaseとatt設定で最小DC powerを初期化
@@ -412,7 +412,7 @@ def autoTune_phase(mcu, ch, adpKey, cntwin):
     th.start()
     cntwin.refresh()
     th.join()
-    time.sleep(1)
+    time.sleep(2)
     
     if AVERAGING == "True":
       cv = pwa   # 現在のDC power
@@ -445,7 +445,7 @@ def autoTune_phase(mcu, ch, adpKey, cntwin):
   th.start()
   cntwin.refresh()
   th.join()
-  time.sleep(1)
+  time.sleep(2)
   return
 
 def autoTune_att(mcu, ch, adpKey, cntwin):
@@ -473,7 +473,7 @@ def autoTune_att(mcu, ch, adpKey, cntwin):
   th.start()
   cntwin.refresh()
   th.join()
-  time.sleep(1)
+  time.sleep(2)
   
   if AVERAGING == "True":
     pv = pwa   # 現在のphaseとatt設定で最小DC powerを初期化
@@ -504,7 +504,7 @@ def autoTune_att(mcu, ch, adpKey, cntwin):
     th.start()
     cntwin.refresh()
     th.join()
-    time.sleep(1)
+    time.sleep(2)
     
     if AVERAGING == "True":
       cv = pwa   # 現在のDC power
@@ -535,7 +535,7 @@ def autoTune_att(mcu, ch, adpKey, cntwin):
   th.start()
   cntwin.refresh()
   th.join()
-  time.sleep(1)
+  time.sleep(2)
   return
 
 if __name__ == '__main__':
