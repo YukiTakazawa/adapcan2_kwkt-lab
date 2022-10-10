@@ -209,7 +209,7 @@ def main():
           curses.echo()
           curses.endwin()
         elif (chr(x)=='t'):
-          autoTune(saml, ch, adpkeys[ch], cntwin, stdscr)
+          autoTune(saml, ch, adpkeys[ch], cntwin, stdscr, pw)
         else:
           cntwin.addstr(0,0,'either a or p')
           stdscr.refresh()
@@ -315,7 +315,7 @@ def writeConf(adpKeys):
           f.write('att:{0} phase:{1}\n'.format(adpKeys[i].att, adpKeys[i].phase))
         f.close 
 
-def autoTune(mcu, ch, adpKey, cntwin, stdscr):   # 自動制御メソッド
+def autoTune(mcu, ch, adpKey, cntwin, stdscr, pw):   # 自動制御メソッド
   try:
     while True:
       cntwin.erase()
@@ -341,9 +341,6 @@ def autoTune(mcu, ch, adpKey, cntwin, stdscr):   # 自動制御メソッド
       if(chr(x) == 'f'):
         fullSearch(mcu, ch, adpKey, cntwin)
       elif(chr(x) == 'x'):
-        mcu.powerSwitch(int(0))
-        del cntwin
-        del datawin
         break
         seth.stop()
         curses.nocbreak()
