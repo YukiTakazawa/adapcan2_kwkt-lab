@@ -381,7 +381,7 @@ def autoTune_phase(mcu, ch, adpKey, cntwin):
   th.start()
   cntwin.refresh()
   th.join()
-  time.sleep(1)
+  time.sleep(3)
   
   if AVERAGING == "True":
     pv = pwa   # 現在のphaseとatt設定で最小DC powerを初期化
