@@ -179,7 +179,7 @@ def main():
         x = cntwin.getch()
         stdscr.refresh()
         if (chr(x) == 'a'):
-          attCnt(saml, ch, adpkeys[ch], cntwin);
+          attCnt(saml, ch, adpkeys[ch], cntwin)
         elif (chr(x)=='z'):
           if pw == 1:
             saml.powerSwitch(int(0))  
@@ -193,11 +193,11 @@ def main():
           else:
               ch = 1
         elif (chr(x)=='p'):
-          phaseCnt(saml, ch, adpkeys[ch], cntwin);  
+          phaseCnt(saml, ch, adpkeys[ch], cntwin)
         elif (chr(x)=='s'):
-          writeConf(adpkeys);  
+          writeConf(adpkeys)
         elif (chr(x)=='w'):
-          spiWrite(saml, cntwin, stdscr);  
+          spiWrite(saml, cntwin, stdscr)
         elif (chr(x)=='x'):
           saml.powerSwitch(int(0))
           del cntwin
@@ -209,7 +209,7 @@ def main():
           curses.echo()
           curses.endwin()
         elif (chr(x)=='t'):
-          autoTune(saml, ch, adpkeys[ch], cntwin);
+          autoTune(saml, ch, adpkeys[ch], cntwin, stdscr)
         else:
           cntwin.addstr(0,0,'either a or p')
           stdscr.refresh()
@@ -315,9 +315,54 @@ def writeConf(adpKeys):
           f.write('att:{0} phase:{1}\n'.format(adpKeys[i].att, adpKeys[i].phase))
         f.close 
 
-def autoTune(mcu, ch, adpKey, cntwin):   # 自動制御メソッド
+def autoTune(mcu, ch, adpKey, cntwin, stdscr):   # 自動制御メソッド
+  try:
+    while True:
+      cntwin.erase()
+      if pw == 1:
+        pwname = 'ON'
+      else:
+        pwname = 'OFF'
+      if ch == 1:
+        chname = '1'
+      else:
+        chname = '0'
+      c = "Pw="+pwname + "\tCh="+chname
+      c = c + "\n\tCh={0}, Att={1:.1f} dB, Phase={2:.1f} deg".format(chname, adpKey.att/2, float(adpKey.phase)/4096*360)
+      title = 'Attenuator/Phase values'
+      cntwin.addstr(0,0,title, curses.color_pair(2))
+      cntwin.addstr(1,0,c)
+      cntwin.addstr(5,0,'options', curses.color_pair(2))
+      cntwin.addstr(6,0,'\tAVERAGING:'+AVERAGING+"\n")
+      cntwin.addstr(8,0,'Select Search Mode', curses.color_pair(2))
+      cntwin.addstr(10,0,"\tf:Full search\n\ts:Step track\n\tx:Exit = ", curses.color_pair(1))
+      cntwin.refresh()
+      x = cntwin.getch()
+      if(chr(x) == 'f'):
+        fullSearch(mcu, ch, adpKey, cntwin)
+      elif(chr(x) == 'x'):
+        mcu.powerSwitch(int(0))
+        del cntwin
+        del datawin
+        break
+        seth.stop()
+        curses.nocbreak()
+        #stdscr.keypad(False)
+        curses.echo()
+        curses.endwin()
+      else:
+        cntwin.addstr(0,0,'either a or p')
+        stdscr.refresh()
+        cntwin.refresh()
+  except(KeyboardInterrupt, EOFError):
+    pass
+
+
+
+def fullSearch(mcu, ch, adpKey, cntwin):
+  cntwin.erase()
   if PHASETUNE == "True":
-    autoTune_phase(mcu, ch, adpKey, cntwin);
+    autoTune_phase(mcu, ch, adpKey, cntwin)
     # cntwin.addstr(5,5,str(time_phase))
   else:
     phase_skipString = "phaseの自動調整をスキップしました"
@@ -325,7 +370,7 @@ def autoTune(mcu, ch, adpKey, cntwin):   # 自動制御メソッド
     cntwin.refresh()
   time.sleep(1)
   if ATTTUNE == "True":
-    autoTune_att(mcu, ch, adpKey, cntwin);
+    autoTune_att(mcu, ch, adpKey, cntwin)
     # cntwin.addstr(6,5,str(time_att))
   else:
     att_skipString = "attの自動調整をスキップしました"
@@ -351,7 +396,8 @@ def autoTune(mcu, ch, adpKey, cntwin):   # 自動制御メソッド
   x = cntwin.getch()
   if chr(x) == 'q':
     return
-  
+
+
 
 def autoTune_phase(mcu, ch, adpKey, cntwin):
   global minphase
@@ -448,6 +494,8 @@ def autoTune_phase(mcu, ch, adpKey, cntwin):
   time.sleep(1)
   return
 
+
+
 def autoTune_att(mcu, ch, adpKey, cntwin):
   global minatt
   global debug_att
@@ -537,6 +585,15 @@ def autoTune_att(mcu, ch, adpKey, cntwin):
   th.join()
   time.sleep(1)
   return
+
+
+
+def direction_search():
+  if AVERAGING == "True":
+    pv = pwa   # DC powerの初期化
+  else:
+    pv = pw
+  
 
 if __name__ == '__main__':
     main()
