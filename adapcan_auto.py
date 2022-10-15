@@ -828,7 +828,7 @@ def directionSearch(mcu, ch, adpKey, cntwin):
         DebugFile(step_phase, step_att, adpKey, cntwin)
       elif cv >= pv :
         if adpKey.phase - 130 < 0:
-          step_phase = 31
+          step_phase = 0
           adpKey.phase = 4095
         else :
           step_phase -= 1
@@ -1059,6 +1059,7 @@ def stepTrack(mcu, ch, adpKey, cntwin, direction, setting):
   
 def LinearRegression(mcu, ch, adpKey, cntwin):  # 最小値設定のbasePointを渡し，basePointから±nstep動かす
   # phase調整
+  global step_phase
   for i in range(1,6):
     step_phase += 1
     # +方向にstep調整
