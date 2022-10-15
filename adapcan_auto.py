@@ -636,12 +636,9 @@ def stepTrack(mcu, ch, adpKey, cntwin):
     pv = pw
   cv = 0
   # Pointの基準点basePointをphase, attをともに0で初期化
-  basePoint = []
-  basePoint.append(adapcanKeys(0, 0))
+  basePoint = adapcanKeys(0, 0)
   step_phase = 0
   step_att = 0
-  basePoint_phase = 0
-  basePoint_att = 0
   DebugFile(step_phase, step_att, adpKey, cntwin)
   
   
@@ -1132,8 +1129,6 @@ def DebugFile(phase_s, att_s, adpKey, cntwin):
     step_att_List.append(att_s)  # step_att
     phase_List.append(adpKey.phase)  # phase
     att_List.append(adpKey.att)  # att
-    phase = basePoint.phase
-    att = basePoint.att
     basePoint_phase_List.append(basePoint.phase)  # basePoint.phase
     basePoint_att_List.append(basePoint.att)  # basePoint.att
     cv_List.append(cv)  # cv
