@@ -1132,6 +1132,8 @@ def DebugFile(phase_s, att_s, adpKey, cntwin):
     step_att_List.append(att_s)  # step_att
     phase_List.append(adpKey.phase)  # phase
     att_List.append(adpKey.att)  # att
+    phase = basePoint.phase
+    att = basePoint.att
     basePoint_phase_List.append(basePoint.phase)  # basePoint.phase
     basePoint_att_List.append(basePoint.att)  # basePoint.att
     cv_List.append(cv)  # cv
