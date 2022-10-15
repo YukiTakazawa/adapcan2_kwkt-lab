@@ -24,6 +24,7 @@ import json
 import pandas as pd
 import datetime
 import numpy as np
+import sklearn
 from sklearn.linear_model import LinearRegression
 import math
 
