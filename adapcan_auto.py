@@ -4,7 +4,6 @@
 from socket import PACKET_LOOPBACK
 import sys
 import time
-from turtle import minus
 import spidev
 import termios
 import contextlib
