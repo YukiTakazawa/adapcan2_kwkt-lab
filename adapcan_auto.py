@@ -787,7 +787,7 @@ def directionSearch(mcu, ch, adpKey, cntwin):
           cv = pwa
         else:
           cv = pw
-        if cv < pv :
+        if float(cv) < float(pv) :
           pv = cv
           basePoint.phase = adpKey.phase
           DebugFile(step_phase, step_att, adpKey, cntwin)
@@ -822,11 +822,11 @@ def directionSearch(mcu, ch, adpKey, cntwin):
         cv = pwa
       else:
         cv = pw
-      if cv < pv :
+      if float(cv) < float(pv) :
         pv = cv
         basePoint.phase = adpKey.phase
         DebugFile(step_phase, step_att, adpKey, cntwin)
-      elif cv >= pv :
+      elif float(cv) >= float(pv) :
         if adpKey.phase - 130 < 0:
           step_phase = 0
           adpKey.phase = 4095
@@ -896,7 +896,7 @@ def directionSearch(mcu, ch, adpKey, cntwin):
           cv = pwa
         else:
           cv = pw
-        if cv < pv :
+        if float(cv) < float(pv) :
           pv = cv
           basePoint.phase = adpKey.phase
           DebugFile(step_phase, step_att, adpKey, cntwin)
@@ -931,11 +931,11 @@ def directionSearch(mcu, ch, adpKey, cntwin):
         cv = pwa
       else:
         cv = pw
-      if cv < pv :
+      if float(cv) < float(pv) :
         pv = cv
         basePoint.phase = adpKey.phase
         DebugFile(step_phase, step_att, adpKey, cntwin)
-      elif cv >= pv :
+      elif float(cv) >= float(pv) :
         if adpKey.phase + 130 > 4095:
           step_phase = 0
           adpKey.phase = 0
@@ -1080,7 +1080,7 @@ def LinearRegression(mcu, ch, adpKey, cntwin):  # 最小値設定のbasePointを
       cv = pwa
     else:
       cv = pw
-    plus_delta = cv-pv
+    plus_delta = float(cv) - float(pv)
     plus_delta_List.append(plus_delta)
     DebugFile(step_phase, step_att, adpKey, cntwin)
     # -方向にstep調整
@@ -1101,7 +1101,7 @@ def LinearRegression(mcu, ch, adpKey, cntwin):  # 最小値設定のbasePointを
       cv = pwa
     else:
       cv = pw
-    minus_delta = cv - pv
+    minus_delta = float(cv) - float(pv)
     minus_delta_List.append(minus_delta)
     DebugFile(-step_phase, -step_att, adpKey, cntwin)
   # plusとminus方向それぞれの回帰直線を作成
