@@ -974,7 +974,7 @@ def directionSearch(mcu, ch, adpKey, cntwin):
                                cv_List, pv_List], index=['step_phase', 'step_att', 'phase', 'att', 'basePoint.phase', 'basePoint.att', 
                                'cv', 'pv'])
     # 最小のphase値探索の検証excelを出力
-    debug_File.to_excel('stepTrack_Debug'+ dt +'.xlsx')
+    debug_File.to_excel('stepTrack_Debug'+ str(dt) +'.xlsx')
     
   x = cntwin.getch()
   if chr(x) == 'q':
@@ -1085,7 +1085,7 @@ def step_LinearRegression(mcu, ch, adpKey, cntwin):  # 最小値設定のbasePoi
     DebugFile(step_phase, step_att, adpKey, cntwin)
     # -方向にstep調整
     if basePoint.phase - 130*i < 0:
-      adpKey.phase = 4095 - basePoint.phase - 130+i
+      adpKey.phase = 4095 - basePoint.phase - 130*i
     else :
       adpKey.phase = max(0, 4095 - basePoint.phase - 130*i)
     cntwin.erase()
