@@ -640,6 +640,8 @@ def stepTrack(mcu, ch, adpKey, cntwin):
   basePoint.append(adapcanKeys(0, 0))
   step_phase = 0
   step_att = 0
+  basePoint_phase = 0
+  basePoint_att = 0
   DebugFile(step_phase, step_att, adpKey, cntwin)
   
   
