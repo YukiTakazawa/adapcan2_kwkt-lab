@@ -733,7 +733,7 @@ def directionSearch(mcu, ch, adpKey, cntwin):
   """
   
   
-  direction = LinearRegression(mcu, ch, adpKey, cntwin)
+  direction = step_LinearRegression(mcu, ch, adpKey, cntwin)
   if direction == "plus":
     if np.sign(min(plus_delta_List)) == -1:  # 最小値がマイナスの符号なら最小値の更新があったと考えられる
       # リスト内の最小値のインデックスから，phase = 0からのシフト量を求めてbasePointを更新する
@@ -1057,14 +1057,14 @@ def stepTrack(mcu, ch, adpKey, cntwin, direction, setting):
 """
   
   
-def LinearRegression(mcu, ch, adpKey, cntwin):  # 最小値設定のbasePointを渡し，basePointから±nstep動かす
+def step_LinearRegression(mcu, ch, adpKey, cntwin):  # 最小値設定のbasePointを渡し，basePointから±nstep動かす
   # phase調整
   global step_phase
   for i in range(1,6):
     step_phase += 1
     # +方向にstep調整
     if basePoint.phase + 130*i > 4095:
-      adpKey.phase = 0
+      adpKey.phase = basePoint.phase + 130*i -4095
     else :
       adpKey.phase = min(4095, basePoint.phase+130*i)
     cntwin.erase()
@@ -1085,9 +1085,9 @@ def LinearRegression(mcu, ch, adpKey, cntwin):  # 最小値設定のbasePointを
     DebugFile(step_phase, step_att, adpKey, cntwin)
     # -方向にstep調整
     if basePoint.phase - 130*i < 0:
-      adpKey.phase = 4095
+      adpKey.phase = 4095 - basePoint.phase - 130+i
     else :
-      adpKey.phase = max(0, basePoint.phase-130*i)
+      adpKey.phase = max(0, 4095 - basePoint.phase - 130*i)
     cntwin.erase()
     cntwin.addstr(9,5, "step track制御を開始")
     cntwin.addstr(10,5, "初期探索を開始")
