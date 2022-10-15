@@ -1,8 +1,10 @@
 #!/usr/bin/python3
 # 
 #
+from socket import PACKET_LOOPBACK
 import sys
 import time
+from turtle import minus
 import spidev
 import termios
 import contextlib
@@ -22,6 +24,10 @@ import json
 #import excel
 import pandas as pd
 import datetime
+import numpy as np
+import sklearn
+from sklearn.linear_model import LinearRegression
+import math
 
 # after the execution of main retrieve the original stty 
 @contextlib.contextmanager
@@ -340,6 +346,8 @@ def autoTune(mcu, ch, adpKey, cntwin, stdscr, pw):   # 自動制御メソッド
       x = cntwin.getch()
       if(chr(x) == 'f'):
         fullSearch(mcu, ch, adpKey, cntwin)
+      if(chr(x) == 's'):
+        stepTrack(mcu, ch, adpKey, cntwin)
       elif(chr(x) == 'x'):
         break
         seth.stop()
@@ -358,24 +366,23 @@ def autoTune(mcu, ch, adpKey, cntwin, stdscr, pw):   # 自動制御メソッド
 
 def fullSearch(mcu, ch, adpKey, cntwin):
   cntwin.erase()
+  cntwin.addstr(9,5, "全探索を開始")
+  cntwin.refresh()
   if PHASETUNE == "True":
     autoTune_phase(mcu, ch, adpKey, cntwin)
     # cntwin.addstr(5,5,str(time_phase))
   else:
-    phase_skipString = "phaseの自動調整をスキップしました"
-    cntwin.addstr(4,10, phase_skipString)
+    cntwin.addstr(10,5, "phaseの自動調整をスキップしました")
     cntwin.refresh()
   time.sleep(1)
   if ATTTUNE == "True":
     autoTune_att(mcu, ch, adpKey, cntwin)
     # cntwin.addstr(6,5,str(time_att))
   else:
-    att_skipString = "attの自動調整をスキップしました"
-    cntwin.addstr(4,10, att_skipString)
+    cntwin.addstr(11,5, "attの自動調整をスキップしました")
     cntwin.refresh()
   time.sleep(1)
-  endString = "自動制御を終了, Phaseを %4d, Attを %3.1fに調整しました\n Qを押してください" %(minphase, minatt/2)
-  cntwin.addstr(4,5,endString)
+  cntwin.addstr(12,5,"自動制御を終了, Phaseを %4d, Attを %3.1fに調整しました\n Qを押してください" %(minphase, minatt/2))
   cntwin.refresh()
   
   # auto_Tuneの実行結果を出力(デバッグ用)
@@ -415,10 +422,8 @@ def autoTune_phase(mcu, ch, adpKey, cntwin):
   adpKey.phase = 0
   adpKey.att = 0
   
-  attphaseString = "Att: %3.1f dB  Phase: %4d iteration: 0" %((adpKey.att/2), adpKey.phase)
-  cntwin.addstr(4,10,attphaseString)
-  startString = "phaseの自動調整を開始"
-  cntwin.addstr(4,5,startString)
+  cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d iteration: 0" %((adpKey.att/2), adpKey.phase))
+  cntwin.addstr(10,5,"phaseの自動調整を開始")
   cntwin.refresh()
   th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
   th.start()
@@ -446,8 +451,7 @@ def autoTune_phase(mcu, ch, adpKey, cntwin):
     else:
       adpKey.phase = min(4095,adpKey.phase + 130)
     
-    attphaseString = "Att: %3.1f dB  Phase: %4d iteration: %d" %((adpKey.att/2), adpKey.phase, i+1)
-    cntwin.addstr(4,10,attphaseString)
+    cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d iteration: %d" %((adpKey.att/2), adpKey.phase, i+1))
     cntwin.refresh()
     
     # 位相を動かす
@@ -471,8 +475,7 @@ def autoTune_phase(mcu, ch, adpKey, cntwin):
       pv = cv
       minphase = adpKey.phase
     minphaseList.append(minphase)
-  attphaseString = "Att: %3.1f dB  Phase: %4d iteration: %d" %((adpKey.att/2), adpKey.phase, i+1)
-  cntwin.addstr(4,10,attphaseString)
+  cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d iteration: %d" %((adpKey.att/2), adpKey.phase, i+1))
   
   # time_end = time.perf_counter()
   # time_phase = time_end - time_sta
@@ -509,10 +512,8 @@ def autoTune_att(mcu, ch, adpKey, cntwin):
   # time_sta = time.perf_counter()
   
   # 初期化設定
-  attphaseString = "Att: %3.1f dB  Phase: %4d iteration: 0" %((adpKey.att/2), adpKey.phase)
-  cntwin.addstr(4,10,attphaseString)
-  startString = "attの自動調整を開始"
-  cntwin.addstr(9,5,startString)
+  cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d iteration: 0" %((adpKey.att/2), adpKey.phase))
+  cntwin.addstr(11,5,"attの自動調整を開始")
   cntwin.refresh()
   th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
   th.start()
@@ -532,16 +533,14 @@ def autoTune_att(mcu, ch, adpKey, cntwin):
   cvList.append('0')
   pvList.append(pv)
   minattList.append(minatt)
-
   
-  for i in range(62):
+  for i in range(63):
     if adpKey.att > 62:
       adpKey.att = 0
     else:
       adpKey.att = min(63,adpKey.att + 1)
     
-    attphaseString = "Att: %3.1f dB  Phase: %4d iteration: %d" %((adpKey.att/2), adpKey.phase, i+1)
-    cntwin.addstr(4,10,attphaseString)
+    cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d iteration: %d" %((adpKey.att/2), adpKey.phase, i+1))
     cntwin.refresh()
     
     # attを調整
@@ -565,8 +564,7 @@ def autoTune_att(mcu, ch, adpKey, cntwin):
       pv = cv
       minatt = adpKey.att
     minattList.append(minatt)
-  attphaseString = "Att: %3.1f dB  Phase: %4d iteration: %d" %((adpKey.att/2), adpKey.phase, i+1)
-  cntwin.addstr(4,10,attphaseString)
+  cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d iteration: %d" %((adpKey.att/2), adpKey.phase, i+1))
   
   # time_end = time.perf_counter()
   # time_att = time_end - time_sta
@@ -585,12 +583,565 @@ def autoTune_att(mcu, ch, adpKey, cntwin):
 
 
 
-def direction_search():
+def stepTrack(mcu, ch, adpKey, cntwin):
+  global pv
+  global cv
+  global basePoint  # DC_powerが最小値となるphaseのシフト量とattenuation値を保持
+  global step_phase  # basePointからのphaseの調整step数を保持
+  global step_att  # attの調整step数を保持
+  
+  # デバッグ用
+  global phase_List
+  global att_List
+  global plus_delta_List
+  global minus_delta_List
+  global step_phase_List
+  global step_att_List
+  global cv_List
+  global pv_List
+  global basePoint_phase_List
+  global basePoint_att_List
+  # global phase_iteration_List
+  # global att_iteration_List
+  
+  basePoint_phase_List = []
+  basePoint_att_List = []
+  cv_List = []
+  pv_List = []
+  phase_List = []
+  att_List = []
+  step_phase_List = []
+  step_att_List = []
+  plus_delta_List = []
+  minus_delta_List = []
+  # phase_iteration_List = list(range(32))
+  # att_iteration_List = list(range(64))
+  
+  cntwin.erase()
+  cntwin.addstr(9,5, "step track制御を開始")
+  cntwin.refresh()
+  # 初期化設定(phase, attともに0からスタート)
+  adpKey.phase = 0
+  adpKey.att = 0
+  cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d iteration: 0" %((adpKey.att/2), adpKey.phase))
+  cntwin.refresh()
+  th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
+  th.start()
+  cntwin.refresh()
+  th.join()
+  time.sleep(1)
+  # 初期化時のDC powerを取得
   if AVERAGING == "True":
-    pv = pwa   # DC powerの初期化
+    pv = pwa
   else:
     pv = pw
+  cv = 0
+  # Pointの基準点basePointをphase, attをともに0で初期化
+  basePoint = []
+  basePoint.append(adapcanKeys(0, 0))
+  step_phase = 0
+  step_att = 0
+  DebugFile(step_phase, step_att, adpKey, cntwin)
   
+  
+  """
+  direction = {}
+  direction = directionSearch(mcu, ch, adpKey, cntwin)
+  direction = LinearRegression(mcu, ch, adpKey, cntwin)
+  if direction[0] == "None":
+    # もしNoneなら最小値の更新がなかったため，attの調整だけしてstepTrackを終了する
+    pass
+  elif direction[0] == "plus":
+    while True:
+      if basePoint.phase + 130*(direction[1]+1) > 4095:
+        adpKey.phase = 0
+      else :
+        adpKey.phase = min(4095, basePoint.phase+130*(direction(1)+1))
+      th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
+      th.start()
+      th.join()
+      time.sleep(1)
+      if AVERAGING == "True":
+        cv = pwa
+        phase_dcpower_List.append(cv)
+      else:
+        cv = pw
+        phase_dcpower_List.append(cv)
+      if cv-pv >= 0:
+        # cvが最小値ではないため，1step戻して最小値の設定にする
+        adpKey.phase -= 1
+        break
+      # pvを更新
+      pv = cv
+  elif direction[0] == "minus":
+    
+  else:
+    cntwin.erase()
+    cntwin.addstr(10,0,"\tphaseの前後値差分の比較にエラーが発生しています", curses.color_pair(1))
+    cntwin.refresh()
+    time.sleep(10)
+  cntwin.erase()
+  cntwin.addstr(9,5,"\tstep track制御を終了")
+  """
+  
+  
+  """
+  # 初期探索として，step制御をplus or minusのどちらで制御するか決定する
+def directionSearch(mcu, ch, adpKey, cntwin):
+  for step in range(15):
+    # +方向にstep調整
+    if basePoint.phase + 130*(step+1) > 4095:
+      adpKey.phase = 0
+    else :
+      adpKey.phase = min(4095, basePoint.phase+130*(step+1))
+    th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
+    th.start()
+    th.join()
+    time.sleep(1)
+    if AVERAGING == "True":
+      cv = pwa
+      phase_dcpower_List.append(cv)
+    else:
+      cv = pw
+      phase_dcpower_List.append(cv)
+    plus_delta = cv-pv
+    # -方向にstep調整
+    if basePoint.phase - 130*(step+1) < 0:
+      adpKey.phase = 4095
+    else :
+      adpKey.phase = max(0, basePoint.phase-130*(step+1))
+    th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
+    th.start()
+    th.join()
+    time.sleep(1)
+    if AVERAGING == "True":
+      cv = pwa
+      phase_dcpower_List.append(cv)
+    else:
+      cv = pw
+      phase_dcpower_List.append(cv)
+    minus_delta = cv - pv
+    # 前step差分と後step差分のどちらかが－符号のときのみ比較する
+    if np.sign(plus_delta)==-1 or np.sign(minus_delta)==-1:
+      if plus_delta < minus_delta:
+        pv = phase_dcpower_List[len(phase_dcpower_List-2)]
+        return "plus", step+1
+      elif plus_delta > minus_delta:
+        pv = phase_dcpower_List[len(phase_dcpower_List-1)]
+        return "minus", step+1
+      else:
+        return
+  return "None"
+  """
+  
+  
+  direction = LinearRegression(mcu, ch, adpKey, cntwin)
+  if direction == "plus":
+    if np.sign(min(plus_delta_List)) == -1:  # 最小値がマイナスの符号なら最小値の更新があったと考えられる
+      # リスト内の最小値のインデックスから，phase = 0からのシフト量を求めてbasePointを更新する
+      if basePoint.phase + 130*(plus_delta_List.index(min(plus_delta_List))+1) > 4095:
+        basePoint.phase = basePoint.phase + 130*(plus_delta_List.index(min(plus_delta_List))+1) - 4095
+        step_phase = math.floor(basePoint.phase / 130)
+        adpKey.phase = basePoint.phase
+      else :
+        basePoint.phase = min(4095, basePoint.phase + 130*(plus_delta_List.index(min(plus_delta_List))+1))
+        step_phase = plus_delta_List.index(min(plus_delta_List))+1
+        adpKey.phase = basePoint.phase
+      cntwin.erase()
+      cntwin.addstr(9,5, "step track制御を開始")
+      cntwin.addstr(10,5, "初期探索を終了")
+      cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d" %((adpKey.att/2), adpKey.phase, step_phase))
+      cntwin.refresh()
+      th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
+      th.start()
+      th.join()
+      time.sleep(1)
+      pv = min(plus_delta_List)
+      cv = pv
+      DebugFile(step_phase, step_att, adpKey, cntwin)
+      """
+      # DC powerの最小値を更新(base)
+      if AVERAGING == "True":
+        pv = pwa
+        phase_dcpower_List.append(pv)
+      else:
+        pv = pw
+        phase_dcpower_List.append(pv)
+      """
+    elif np.sign(min(plus_delta_List)) == 1:  # 最小値がプラスの符号なら最小値の更新がなかったため，探索を続ける
+      while True:
+        if adpKey.phase + 130 > 4095:
+          step_phase = 0
+          adpKey.phase = 0
+        else :
+          step_phase += 1
+          adpKey.phase = min(4095, adpKey.phase + 130)
+        cntwin.erase()
+        cntwin.addstr(9,5, "step track制御を開始")
+        cntwin.addstr(10,5, "初期探索を終了")
+        cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d" %((adpKey.att/2), adpKey.phase, step_phase))
+        cntwin.refresh()
+        th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
+        th.start()
+        th.join()
+        time.sleep(1)
+        if AVERAGING == "True":
+          cv = pwa
+        else:
+          cv = pw
+        if cv < pv :
+          pv = cv
+          basePoint.phase = adpKey.phase
+          DebugFile(step_phase, step_att, adpKey, cntwin)
+          break
+        DebugFile(step_phase, step_att, adpKey, cntwin)
+    else:
+      cntwin.erase()
+      cntwin.addstr(15,0,"\tplus_delta_Listの最小値の符号が取得できません", curses.color_pair(1))
+      cntwin.refresh()
+      time.sleep(10)
+      return
+      
+    
+    # さらに最小値が続くかの探索ループ(極小値探索)
+    while True:
+      if adpKey.phase + 130 > 4095:
+        step_phase = 0
+        adpKey.phase = 0
+      else :
+        step_phase += 1
+        adpKey.phase = min(4095, adpKey.phase + 130)
+      cntwin.erase()
+      cntwin.addstr(9,5, "step track制御を開始")
+      cntwin.addstr(10,5, "初期探索を終了")
+      cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d" %((adpKey.att/2), adpKey.phase, step_phase))
+      cntwin.refresh()
+      th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
+      th.start()
+      th.join()
+      time.sleep(1)
+      if AVERAGING == "True":
+        cv = pwa
+      else:
+        cv = pw
+      if cv < pv :
+        pv = cv
+        basePoint.phase = adpKey.phase
+        DebugFile(step_phase, step_att, adpKey, cntwin)
+      elif cv >= pv :
+        if adpKey.phase - 130 < 0:
+          step_phase = 31
+          adpKey.phase = 4095
+        else :
+          step_phase -= 1
+          adpKey.phase = max(0,adpKey.phase-130)
+        cntwin.erase()
+        cntwin.addstr(9,5, "step track制御を開始")
+        cntwin.addstr(10,5, "初期探索を終了")
+        cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d" %((adpKey.att/2), adpKey.phase, step_phase))
+        cntwin.refresh()
+        th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
+        th.start()
+        th.join()
+        time.sleep(1)
+        DebugFile(step_phase, step_att, adpKey, cntwin)
+        break
+
+  elif direction == "minus":  # 同様に
+    if np.sign(min(minus_delta_List)) == -1:  # 最小値がマイナスの符号なら最小値の更新があったと考えられる
+      # リスト内の最小値のインデックスから，phase = 0からのシフト量を求めてbasePointを更新する
+      if basePoint.phase - 130*(minus_delta_List.index(min(minus_delta_List))+1) < 0:
+        basePoint.phase = 4095 - 130*(minus_delta_List.index(min(minus_delta_List))+1)
+        adpKey.phase = basePoint.phase
+      else :
+        basePoint.phase = max(0, basePoint.phase - 130*(minus_delta_List.index(min(minus_delta_List))+1))
+        adpKey.phase = basePoint.phase
+      cntwin.erase()
+      cntwin.addstr(9,5, "step track制御を開始")
+      cntwin.addstr(10,5, "初期探索を終了")
+      cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d" %((adpKey.att/2), adpKey.phase, step_phase))
+      cntwin.refresh()
+      th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
+      th.start()
+      th.join()
+      time.sleep(1)
+      pv = min(plus_delta_List)
+      cv = pv
+      DebugFile(step_phase, step_att, adpKey, cntwin)
+      """
+      # DC powerの最小値を更新(base)
+      if AVERAGING == "True":
+        pv = pwa
+        phase_dcpower_List.append(pv)
+      else:
+        pv = pw
+        phase_dcpower_List.append(pv)
+      """
+    elif np.sign(min(minus_delta_List)) == 1:  # 最小値がプラスの符号なら最小値の更新がなかったため，探索を続ける
+      while True:
+        if adpKey.phase - 130 < 0:
+          step_phase = 0
+          adpKey.phase = 4095
+        else :
+          step_phase += 1
+          adpKey.phase = max(0, adpKey.phase - 130)
+        cntwin.erase()
+        cntwin.addstr(9,5, "step track制御を開始")
+        cntwin.addstr(10,5, "初期探索を終了")
+        cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d" %((adpKey.att/2), adpKey.phase, step_phase))
+        cntwin.refresh()
+        th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
+        th.start()
+        th.join()
+        time.sleep(1)
+        if AVERAGING == "True":
+          cv = pwa
+        else:
+          cv = pw
+        if cv < pv :
+          pv = cv
+          basePoint.phase = adpKey.phase
+          DebugFile(step_phase, step_att, adpKey, cntwin)
+          break
+        DebugFile(step_phase, step_att, adpKey, cntwin)
+    else:
+      cntwin.erase()
+      cntwin.addstr(15,0,"\tplus_delta_Listの最小値の符号が取得できません", curses.color_pair(1))
+      cntwin.refresh()
+      time.sleep(10)
+      return
+      
+      
+    # さらに最小値が続くかの探索ループ
+    while True:
+      if adpKey.phase - 130 < 0:
+        step_phase = 0
+        adpKey.phase = 4095
+      else :
+        step_phase += 1
+        adpKey.phase = max(0, adpKey.phase - 130)
+      cntwin.erase()
+      cntwin.addstr(9,5, "step track制御を開始")
+      cntwin.addstr(10,5, "初期探索を終了")
+      cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d" %((adpKey.att/2), adpKey.phase, step_phase))
+      cntwin.refresh()
+      th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
+      th.start()
+      th.join()
+      time.sleep(1)
+      if AVERAGING == "True":
+        cv = pwa
+      else:
+        cv = pw
+      if cv < pv :
+        pv = cv
+        basePoint.phase = adpKey.phase
+        DebugFile(step_phase, step_att, adpKey, cntwin)
+      elif cv >= pv :
+        if adpKey.phase + 130 > 4095:
+          step_phase = 0
+          adpKey.phase = 0
+        else :
+          step_phase -= 1
+          adpKey.phase = max(0,adpKey.phase-130)
+        cntwin.erase()
+        cntwin.addstr(9,5, "step track制御を開始")
+        cntwin.addstr(10,5, "初期探索を終了")
+        cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d" %((adpKey.att/2), adpKey.phase, step_phase))
+        cntwin.refresh()
+        th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
+        th.start()
+        th.join()
+        time.sleep(1)
+        DebugFile(step_phase, step_att, adpKey, cntwin)
+        break
+        
+  else:
+    cntwin.erase()
+    cntwin.addstr(15,0,"\tphaseの前後値差分の比較にエラーが発生しています", curses.color_pair(1))
+    cntwin.refresh()
+    time.sleep(10)
+    return
+  
+  
+  cntwin.erase()
+  cntwin.addstr(9,5,"stepTrack制御を終了, Phaseを %4d, Attを %3.1fに調整しました\n Qを押してください" %(basePoint.phase, basePoint.att/2))
+  cntwin.refresh()
+  
+  # auto_Tuneの実行結果を出力(デバッグ用)
+  if DEBUG == "True":
+    t = time.time()
+    dt = datetime.datetime.fromtimestamp(t)
+    debug_File = pd.DataFrame([step_phase_List, step_att_List, phase_List, att_List, basePoint_phase_List, basePoint_att_List, 
+                               cv_List, pv_List], index=['step_phase', 'step_att', 'phase', 'att', 'basePoint.phase', 'basePoint.att', 
+                               'cv', 'pv'])
+    # 最小のphase値探索の検証excelを出力
+    debug_File.to_excel('stepTrack_Debug'+ dt +'.xlsx')
+    
+  x = cntwin.getch()
+  if chr(x) == 'q':
+    return
+
+
+
+"""
+# directionSearchで決めた制御の方向に繰り返し制御する
+def stepTrack(mcu, ch, adpKey, cntwin, direction, setting):
+  if setting == "phase":
+    if direction == "plus":
+      for i in range(5):
+        if basePoint.phase + 130*(direction(1)+i) > 4095:
+          adpKey.phase = 0
+        else :
+          adpKey.phase = min(4095, basePoint.phase+130*(direction(1)+i))
+        th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
+        th.start()
+        th.join()
+        time.sleep(1)
+        if AVERAGING == "True":
+          cv = pwa
+          phase_dcpower_List.append(cv)
+        else:
+          cv = pw
+          phase_dcpower_List.append(cv)
+        if cv-pv >= 0:
+          # cvが最小値ではないため，1step戻して最小値の設定にする
+          adpKey.phase -= 1
+          break
+        # pvを更新
+        pv = cv
+    elif direction == "minus":
+      while True:
+        if basePoint.phase - 130*(direction(1)+1) < 0:
+          adpKey.phase = 0
+        else :
+          adpKey.phase = max(0, basePoint.phase-130*(direction(1)+1))
+        th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
+        th.start()
+        th.join()
+        time.sleep(1)
+        if AVERAGING == "True":
+          cv = pwa
+          phase_dcpower_List.append(cv)
+        else:
+          cv = pw
+          phase_dcpower_List.append(cv)
+        if cv-pv >= 0:
+          # cvが最小値ではないため，1step戻して最小値の設定にする
+          adpKey.phase += 1
+          break
+        # pvを更新
+        pv = cv
+    else:
+      cntwin.erase()
+      cntwin.addstr(10,0,"\t変数directonにplusまたはminusが格納されていません", curses.color_pair(1))
+      cntwin.refresh()
+      time.sleep(10)
+      return
+  
+  elif setting == "att":
+    if direction == "plus":
+      pass
+    elif direction == "minus":
+      pass
+    else:
+      cntwin.erase()
+      cntwin.addstr(10,0,"\t変数directonにplusまたはminusが格納されていません", curses.color_pair(1))
+      cntwin.refresh()
+      time.sleep(10)
+      return
+  else:
+    cntwin.erase()
+    cntwin.addstr(10,0,"\t変数settingにphaseまたはattが格納されていません", curses.color_pair(1))
+    cntwin.refresh()
+    time.sleep(10)
+    return
+"""
+  
+  
+def LinearRegression(mcu, ch, adpKey, cntwin):  # 最小値設定のbasePointを渡し，basePointから±nstep動かす
+  # phase調整
+  for i in range(1,6):
+    step_phase += 1
+    # +方向にstep調整
+    if basePoint.phase + 130*i > 4095:
+      adpKey.phase = 0
+    else :
+      adpKey.phase = min(4095, basePoint.phase+130*i)
+    cntwin.erase()
+    cntwin.addstr(9,5, "step track制御を開始")
+    cntwin.addstr(10,5, "初期探索を開始")
+    cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d" %((adpKey.att/2), adpKey.phase, step_phase))
+    cntwin.refresh()
+    th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
+    th.start()
+    th.join()
+    time.sleep(1)
+    if AVERAGING == "True":
+      cv = pwa
+    else:
+      cv = pw
+    plus_delta = cv-pv
+    plus_delta_List.append(plus_delta)
+    DebugFile(step_phase, step_att, adpKey, cntwin)
+    # -方向にstep調整
+    if basePoint.phase - 130*i < 0:
+      adpKey.phase = 4095
+    else :
+      adpKey.phase = max(0, basePoint.phase-130*i)
+    cntwin.erase()
+    cntwin.addstr(9,5, "step track制御を開始")
+    cntwin.addstr(10,5, "初期探索を開始")
+    cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d" %((adpKey.att/2), adpKey.phase, step_phase))
+    cntwin.refresh()
+    th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
+    th.start()
+    th.join()
+    time.sleep(1)
+    if AVERAGING == "True":
+      cv = pwa
+    else:
+      cv = pw
+    minus_delta = cv - pv
+    minus_delta_List.append(minus_delta)
+    DebugFile(-step_phase, -step_att, adpKey, cntwin)
+  # plusとminus方向それぞれの回帰直線を作成
+  plus_model = LinearRegression()
+  minus_model = LinearRegression()
+  plus_model.fit(pd.DataFrame(range(1, i+1)), pd.DataFrame(plus_delta_List))
+  minus_model.fit(pd.DataFrame(range(1, i+1)), pd.DataFrame(minus_delta_List))
+  # 回帰直線から(i+1)step後に最小値量へ向かっている方向を探す
+  plus_slope = plus_model.coef_ * (i+1) + plus_model.intercept_
+  minus_slope = minus_model.coef_ * (i+1) + minus_model.intercept_
+    
+  if plus_slope < minus_slope:
+    return "plus"
+  elif plus_slope > minus_slope:
+    return "minus"
+  else:
+    cntwin.erase()
+    cntwin.addstr(15,0,"\t初期探索でエラー", curses.color_pair(1))
+    cntwin.refresh()
+    time.sleep(10)
+    return 
+  
+def DebugFile(phase_s, att_s, adpKey, cntwin):
+  if DEBUG == "True":
+    step_phase_List.append(phase_s)  # step_phase
+    step_att_List.append(att_s)  # step_att
+    phase_List.append(adpKey.phase)  # phase
+    att_List.append(adpKey.att)  # att
+    basePoint_phase_List.append(basePoint.phase)  # basePoint.phase
+    basePoint_att_List.append(basePoint.att)  # basePoint.att
+    cv_List.append(cv)  # cv
+    pv_List.append(pv)  # pv
+  elif DEBUG == "False":
+    pass
+  else:
+    cntwin.erase()
+    cntwin.addstr(15,0,"\tDebugオプションに有効な文字列が与えられていません", curses.color_pair(1))
+    cntwin.refresh()
+    time.sleep(10)
 
 if __name__ == '__main__':
     main()
