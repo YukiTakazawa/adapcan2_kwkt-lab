@@ -1185,6 +1185,7 @@ class DebugFile:
     self.basePoint_att = []
     self.cv = []
     self.pv = []
+    self.delta = []
   
   def set(self, step_phase, step_att, direction, adpKey, basePoint, cv, pv):
     self.step_phase.append(step_phase)
@@ -1196,13 +1197,13 @@ class DebugFile:
     self.basePoint_att.append(basePoint.att)
     self.cv.append(cv)
     self.pv.append(pv)
+    self.delta.append(cv-pv)
 
   def output(self):
     t = time.time()
     dt = datetime.datetime.fromtimestamp(t)
     debug_File = pd.DataFrame([self.step_phase, self.step_att, self.phase, self.att, self.basePoint_phase, self.basePoint_att, 
-                               self.cv, self.pv, self.direction], index=['step_phase', 'step_att', 'phase', 'att', 'basePoint.phase', 'basePoint.att', 
-                               'cv', 'pv', 'direction'])
+                               self.cv, self.pv, self.delta, self.direction], index=['step_phase', 'step_att', 'phase', 'att', 'basePoint.phase', 'basePoint.att', 'cv', 'pv', 'delta', 'direction'])
     # 最小のphase値探索の検証excelを出力
     debug_File.to_excel('stepTrack_Debug'+ str(dt) +'.xlsx')
 
