@@ -738,7 +738,9 @@ def directionSearch(mcu, ch, adpKey, cntwin):
   
   direction = step_LinearRegression(mcu, ch, step_phase, step_att, adpKey, basePoint, plus_delta_List, minus_delta_List, cv, pv, cntwin, debug)
   if direction == "plus":
-    if np.sign(min(plus_delta_List)) == -1:  # 最小値がマイナスの符号なら最小値の更新があったと考えられる
+    index = len(plus_delta_List)
+    delta_List = plus_delta_List[index-5:index]
+    if np.sign(min(delta_List)) == -1:  # 最小値がマイナスの符号なら最小値の更新があったと考えられる
       # リスト内の最小値のインデックスから，phase = 0からのシフト量を求めてbasePointを更新する
       if basePoint.phase + 130*(plus_delta_List.index(min(plus_delta_List))+1) > 4095:
         basePoint.phase = basePoint.phase + 130*(plus_delta_List.index(min(plus_delta_List))+1) - 4095
@@ -769,7 +771,7 @@ def directionSearch(mcu, ch, adpKey, cntwin):
         pv = pw
         phase_dcpower_List.append(pv)
       """
-    elif np.sign(min(plus_delta_List)) == 1:  # 最小値がプラスの符号なら最小値の更新がなかったため，探索を続ける
+    elif np.sign(min(delta_List)) == 1:  # 最小値がプラスの符号なら最小値の更新がなかったため，探索を続ける
       while True:
         if adpKey.phase + 130 > 4095:
           step_phase = 0
@@ -849,7 +851,9 @@ def directionSearch(mcu, ch, adpKey, cntwin):
         break
 
   elif direction == "minus":  # 同様に
-    if np.sign(min(minus_delta_List)) == -1:  # 最小値がマイナスの符号なら最小値の更新があったと考えられる
+    index = len(minus_delta_List)
+    delta_List = minus_delta_List[index-5:index]
+    if np.sign(min(delta_List)) == -1:  # 最小値がマイナスの符号なら最小値の更新があったと考えられる
       # リスト内の最小値のインデックスから，phase = 0からのシフト量を求めてbasePointを更新する
       if basePoint.phase - 130*(minus_delta_List.index(min(minus_delta_List))+1) < 0:
         basePoint.phase = 4095 - 130*(minus_delta_List.index(min(minus_delta_List))+1)
@@ -878,7 +882,7 @@ def directionSearch(mcu, ch, adpKey, cntwin):
         pv = pw
         phase_dcpower_List.append(pv)
       """
-    elif np.sign(min(minus_delta_List)) == 1:  # 最小値がプラスの符号なら最小値の更新がなかったため，探索を続ける
+    elif np.sign(min(delta_List)) == 1:  # 最小値がプラスの符号なら最小値の更新がなかったため，探索を続ける
       while True:
         if adpKey.phase - 130 < 0:
           step_phase = 0
@@ -1069,8 +1073,6 @@ def stepTrack(mcu, ch, adpKey, cntwin, direction, setting):
   
   
 def step_LinearRegression(mcu, ch, step_phase, step_att, adpKey, basePoint, plus_delta_List, minus_delta_List, cv, pv, cntwin, debug):  # 最小値設定のbasePointを渡し，basePointから±nstep動かす
-  plus_delta_List = []
-  minus_delta_List = []
   direction = "None"
   
   # phase調整
