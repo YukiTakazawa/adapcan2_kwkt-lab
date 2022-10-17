@@ -1138,18 +1138,18 @@ def step_LinearRegression(mcu, ch, adpKey, basePoint, cntwin):  # 最小値設�
     time.sleep(10)
     return 
   
-def DebugFile(phase_s, att_s, adpKey, basePoint, cntwin):
+def DebugFile(step_phase, step_att, adpKey, basePoint, cntwin):
   if DEBUG == "True":
-    global step_phase_List
-    global step_att_List
-    global phase_List
-    global att_List
-    global basePoint_phase_List
-    global basePoint_att_List
-    global cv_List
-    global pv_List
-    step_phase_List.append(phase_s)  # step_phase
-    step_att_List.append(att_s)  # step_att
+    # global step_phase_List
+    # global step_att_List
+    # global phase_List
+    # global att_List
+    # global basePoint_phase_List
+    # global basePoint_att_List
+    # global cv_List
+    # global pv_List
+    step_phase_List.append(step_phase)  # step_phase
+    step_att_List.append(step_att)  # step_att
     phase_List.append(adpKey.phase)  # phase
     att_List.append(adpKey.att)  # att
     basePoint_phase_List.append(basePoint.phase)  # basePoint.phase
