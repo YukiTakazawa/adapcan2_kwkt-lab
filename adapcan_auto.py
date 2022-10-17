@@ -603,16 +603,16 @@ def stepTrack(mcu, ch, adpKey, cntwin):
   # global att_iteration_List
   # global direction_List
   
-  basePoint_phase_List = []
-  basePoint_att_List = []
-  cv_List = []
-  pv_List = []
-  phase_List = []
-  att_List = []
-  step_phase_List = []
-  step_att_List = []
-  # plus_delta_List = []
-  # minus_delta_List = []
+  # basePoint_phase_List = []
+  # basePoint_att_List = []
+  # cv_List = []
+  # pv_List = []
+  # phase_List = []
+  # att_List = []
+  # step_phase_List = []
+  # step_att_List = []
+  plus_delta_List = []
+  minus_delta_List = []
   # phase_iteration_List = list(range(32))
   # att_iteration_List = list(range(64))
   # direction_List = []
@@ -641,7 +641,8 @@ def stepTrack(mcu, ch, adpKey, cntwin):
   step_phase = 0
   step_att = 0
   direction = "None"
-  DebugFile(step_phase, step_att, adpKey, basePoint, cntwin)
+  debug = DebugFile()
+  debug.set(step_phase, step_att, direction, adpKey, basePoint, cv, pv, cntwin)
   
   
   """
@@ -735,7 +736,7 @@ def directionSearch(mcu, ch, adpKey, cntwin):
   """
   
   
-  direction = step_LinearRegression(mcu, ch, adpKey, basePoint, cntwin)
+  direction = step_LinearRegression(mcu, ch, step_phase, step_att, adpKey, basePoint, plus_delta_List, minus_delta_List, cv, pv, cntwin, debug)
   if direction == "plus":
     if np.sign(min(plus_delta_List)) == -1:  # 最小値がマイナスの符号なら最小値の更新があったと考えられる
       # リスト内の最小値のインデックスから，phase = 0からのシフト量を求めてbasePointを更新する
@@ -758,7 +759,7 @@ def directionSearch(mcu, ch, adpKey, cntwin):
       time.sleep(1)
       pv = min(plus_delta_List)
       cv = pv
-      DebugFile(step_phase, step_att, adpKey, basePoint, cntwin)
+      debug.set(step_phase, step_att, direction, adpKey, basePoint, cv, pv, cntwin)      
       """
       # DC powerの最小値を更新(base)
       if AVERAGING == "True":
@@ -792,9 +793,9 @@ def directionSearch(mcu, ch, adpKey, cntwin):
         if float(cv) < float(pv) :
           pv = cv
           basePoint.phase = adpKey.phase
-          DebugFile(step_phase, step_att, adpKey, basePoint, cntwin)
+          debug.set(step_phase, step_att, direction, adpKey, basePoint, cv, pv, cntwin)
           break
-        DebugFile(step_phase, step_att, adpKey, basePoint, cntwin)
+        debug.set(step_phase, step_att, direction, adpKey, basePoint, cv, pv, cntwin)
     else:
       cntwin.erase()
       cntwin.addstr(15,0,"\tplus_delta_Listの最小値の符号が取得できません", curses.color_pair(1))
@@ -827,7 +828,7 @@ def directionSearch(mcu, ch, adpKey, cntwin):
       if float(cv) < float(pv) :
         pv = cv
         basePoint.phase = adpKey.phase
-        DebugFile(step_phase, step_att, adpKey, basePoint, cntwin)
+        debug.set(step_phase, step_att, direction, adpKey, basePoint, cv, pv, cntwin)
       elif float(cv) >= float(pv) :
         if adpKey.phase - 130 < 0:
           step_phase = 0
@@ -844,7 +845,7 @@ def directionSearch(mcu, ch, adpKey, cntwin):
         th.start()
         th.join()
         time.sleep(1)
-        DebugFile(step_phase, step_att, adpKey, basePoint, cntwin)
+        debug.set(step_phase, step_att, direction, adpKey, basePoint, cv, pv, cntwin)
         break
 
   elif direction == "minus":  # 同様に
@@ -867,7 +868,7 @@ def directionSearch(mcu, ch, adpKey, cntwin):
       time.sleep(1)
       pv = min(plus_delta_List)
       cv = pv
-      DebugFile(step_phase, step_att, adpKey, basePoint, cntwin)
+      debug.set(step_phase, step_att, direction, adpKey, basePoint, cv, pv, cntwin)
       """
       # DC powerの最小値を更新(base)
       if AVERAGING == "True":
@@ -901,9 +902,9 @@ def directionSearch(mcu, ch, adpKey, cntwin):
         if float(cv) < float(pv) :
           pv = cv
           basePoint.phase = adpKey.phase
-          DebugFile(step_phase, step_att, adpKey, basePoint, cntwin)
+          debug.set(step_phase, step_att, direction, adpKey, basePoint, cv, pv, cntwin)
           break
-        DebugFile(step_phase, step_att, adpKey, basePoint, cntwin)
+        debug.set(step_phase, step_att, direction, adpKey, basePoint, cv, pv, cntwin)
     else:
       cntwin.erase()
       cntwin.addstr(15,0,"\tplus_delta_Listの最小値の符号が取得できません", curses.color_pair(1))
@@ -936,7 +937,7 @@ def directionSearch(mcu, ch, adpKey, cntwin):
       if float(cv) < float(pv) :
         pv = cv
         basePoint.phase = adpKey.phase
-        DebugFile(step_phase, step_att, adpKey, basePoint, cntwin)
+        debug.set(step_phase, step_att, direction, adpKey, basePoint, cv, pv, cntwin)
       elif float(cv) >= float(pv) :
         if adpKey.phase + 130 > 4095:
           step_phase = 0
@@ -953,7 +954,7 @@ def directionSearch(mcu, ch, adpKey, cntwin):
         th.start()
         th.join()
         time.sleep(1)
-        DebugFile(step_phase, step_att, adpKey, basePoint, cntwin)
+        debug.set(step_phase, step_att, direction, adpKey, basePoint, cv, pv, cntwin)
         break
         
   else:
@@ -970,14 +971,22 @@ def directionSearch(mcu, ch, adpKey, cntwin):
   
   # auto_Tuneの実行結果を出力(デバッグ用)
   if DEBUG == "True":
+    """
     t = time.time()
     dt = datetime.datetime.fromtimestamp(t)
     debug_File = pd.DataFrame([step_phase_List, step_att_List, phase_List, att_List, basePoint_phase_List, basePoint_att_List, 
-                               cv_List, pv_List], index=['step_phase', 'step_att', 'phase', 'att', 'basePoint.phase', 'basePoint.att', 
-                               'cv', 'pv'])
+                               cv_List, pv_List], index=['step_phase', 'step_att', 'phase', 'att', 'basePoint.phase', 'basePoint.att', 'cv', 'pv'])
     # 最小のphase値探索の検証excelを出力
     debug_File.to_excel('stepTrack_Debug'+ str(dt) +'.xlsx')
-    
+    """
+    debug.output()
+  elif DEBUG == "False":
+    pass
+  else:
+    cntwin.erase()
+    cntwin.addstr(15,0,"\tDebugオプションに有効な文字列が与えられていません", curses.color_pair(1))
+    cntwin.refresh()
+    time.sleep(10)
   x = cntwin.getch()
   if chr(x) == 'q':
     return
@@ -1059,21 +1068,12 @@ def stepTrack(mcu, ch, adpKey, cntwin, direction, setting):
 """
   
   
-def step_LinearRegression(mcu, ch, adpKey, basePoint, cntwin):  # 最小値設定のbasePointを渡し，basePointから±nstep動かす
-  global plus_delta_List
-  global minus_delta_List
-  global direction
-  global cv
-  global pv
-  global plus_delta_List
-  global minus_delta_List
-  global step_att
+def step_LinearRegression(mcu, ch, step_phase, step_att, adpKey, basePoint, plus_delta_List, minus_delta_List, cv, pv, cntwin, debug):  # 最小値設定のbasePointを渡し，basePointから±nstep動かす
   plus_delta_List = []
   minus_delta_List = []
   direction = "None"
   
   # phase調整
-  global step_phase  # basePointからのphaseの調整step数を保持
   for i in range(1,6):
     step_phase += 1
     # +方向にstep調整
@@ -1096,7 +1096,7 @@ def step_LinearRegression(mcu, ch, adpKey, basePoint, cntwin):  # 最小値設�
       cv = pw
     plus_delta = float(cv) - float(pv)
     plus_delta_List.append(plus_delta)
-    DebugFile(step_phase, step_att, adpKey, basePoint, cntwin)
+    debug.set(step_phase, step_att, direction, adpKey, basePoint, cv, pv, cntwin)
     # -方向にstep調整
     if basePoint.phase - 130*i < 0:
       adpKey.phase = 4095 - basePoint.phase - 130*i
@@ -1117,7 +1117,7 @@ def step_LinearRegression(mcu, ch, adpKey, basePoint, cntwin):  # 最小値設�
       cv = pw
     minus_delta = float(cv) - float(pv)
     minus_delta_List.append(minus_delta)
-    DebugFile(-step_phase, -step_att, adpKey, basePoint, cntwin)
+    debug.set(-step_phase, -step_att, direction, adpKey, basePoint, cv, pv, cntwin)
   # plusとminus方向それぞれの回帰直線を作成
   plus_model = LinearRegression()
   minus_model = LinearRegression()
@@ -1138,8 +1138,10 @@ def step_LinearRegression(mcu, ch, adpKey, basePoint, cntwin):  # 最小値設�
     time.sleep(10)
     return 
   
+  """
 def DebugFile(step_phase, step_att, adpKey, basePoint, cntwin):
   if DEBUG == "True":
+    DebugFile.set(step_phase, step_att, adpKey, basePoint)
     # global step_phase_List
     # global step_att_List
     # global phase_List
@@ -1156,6 +1158,7 @@ def DebugFile(step_phase, step_att, adpKey, basePoint, cntwin):
     basePoint_att_List.append(basePoint.att)  # basePoint.att
     cv_List.append(cv)  # cv
     pv_List.append(pv)  # pv
+    
   elif DEBUG == "False":
     pass
   else:
@@ -1163,6 +1166,40 @@ def DebugFile(step_phase, step_att, adpKey, basePoint, cntwin):
     cntwin.addstr(15,0,"\tDebugオプションに有効な文字列が与えられていません", curses.color_pair(1))
     cntwin.refresh()
     time.sleep(10)
+  """
+    
+class DebugFile:
+  def __init__(self):
+    self.step_phase = []
+    self.step_att = []
+    self.phase = []
+    self.att = []
+    self.direction = []
+    self.basePoint_phase = []
+    self.basePoint_att = []
+    self.cv = []
+    self.pv = []
+  
+  def set(self, step_phase, step_att, direction, adpKey, basePoint, cv, pv):
+    self.step_phase.append(step_phase)
+    self.step_att.append(step_att)
+    self.direction.append(direction)
+    self.phase.append(adpKey.phase)
+    self.att.append(adpKey.att)
+    self.basePoint_phase.append(basePoint.phase)
+    self.basePoint_att.append(basePoint.att)
+    self.cv.append(cv)
+    self.pv.append(pv)
+
+  def output(self):
+    t = time.time()
+    dt = datetime.datetime.fromtimestamp(t)
+    debug_File = pd.DataFrame([self.step_phase, self.step_att, self.phase, self.att, self.basePoint_phase, self.basePoint_att, 
+                               self.cv, self.pv, self.direction], index=['step_phase', 'step_att', 'phase', 'att', 'basePoint.phase', 'basePoint.att', 
+                               'cv', 'pv', 'direction'])
+    # 最小のphase値探索の検証excelを出力
+    debug_File.to_excel('stepTrack_Debug'+ str(dt) +'.xlsx')
+
 
 if __name__ == '__main__':
     main()
