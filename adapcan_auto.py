@@ -1330,6 +1330,8 @@ def stepTrack(mcu, ch, adpKey, cntwin, direction, setting):
   
 def step_LinearRegression(mcu, ch, step_phase, step_att, adpKey, basePoint, plus_delta_List, minus_delta_List, cv, pv, cntwin, debug, setting):  # 最小値設定のbasePointを渡し，basePointから±nstep動かす
   direction = "None"
+  plus_delta_List = []
+  minus_delta_List = []
   # phaseの探索
   if setting == "phase":
     for i in range(1,6):
@@ -1352,8 +1354,7 @@ def step_LinearRegression(mcu, ch, step_phase, step_att, adpKey, basePoint, plus
         cv = pwa
       else:
         cv = pw
-      plus_delta = float(cv) - float(pv)
-      plus_delta_List.append(plus_delta)
+      plus_delta_List.append(float(cv) - float(pv))
       debug.set(step_phase, step_att, direction, adpKey, basePoint, cv, pv)
       # -方向にstep調整
       if basePoint.phase - 130*i < 0:
@@ -1373,8 +1374,7 @@ def step_LinearRegression(mcu, ch, step_phase, step_att, adpKey, basePoint, plus
         cv = pwa
       else:
         cv = pw
-      minus_delta = float(cv) - float(pv)
-      minus_delta_List.append(minus_delta)
+      minus_delta_List.append(float(cv) - float(pv))
       debug.set(-step_phase, -step_att, direction, adpKey, basePoint, cv, pv)
     # plusとminus方向それぞれの回帰直線を作成
     plus_model = LinearRegression()
@@ -1408,7 +1408,7 @@ def step_LinearRegression(mcu, ch, step_phase, step_att, adpKey, basePoint, plus
       cntwin.erase()
       cntwin.addstr(9,5, "step track制御を開始")
       cntwin.addstr(10,5, "attの初期探索を開始")
-      cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d" %((adpKey.att/2), adpKey.phase, step_phase))
+      cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_att: %d" %((adpKey.att/2), adpKey.phase, step_att))
       cntwin.refresh()
       th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
       th.start()
@@ -1418,8 +1418,7 @@ def step_LinearRegression(mcu, ch, step_phase, step_att, adpKey, basePoint, plus
         cv = pwa
       else:
         cv = pw
-      plus_delta = float(cv) - float(pv)
-      plus_delta_List.append(plus_delta)
+      plus_delta_List.append(float(cv) - float(pv))
       debug.set(step_phase, step_att, direction, adpKey, basePoint, cv, pv)
       # -方向にstep調整
       if basePoint.att - i < 0:
@@ -1429,7 +1428,7 @@ def step_LinearRegression(mcu, ch, step_phase, step_att, adpKey, basePoint, plus
       cntwin.erase()
       cntwin.addstr(9,5, "step track制御を開始")
       cntwin.addstr(10,5, "attの初期探索を開始")
-      cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d" %((adpKey.att/2), adpKey.phase, step_phase))
+      cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_att: %d" %((adpKey.att/2), adpKey.phase, step_att))
       cntwin.refresh()
       th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
       th.start()
@@ -1439,8 +1438,7 @@ def step_LinearRegression(mcu, ch, step_phase, step_att, adpKey, basePoint, plus
         cv = pwa
       else:
         cv = pw
-      minus_delta = float(cv) - float(pv)
-      minus_delta_List.append(minus_delta)
+      minus_delta_List.append(float(cv) - float(pv))
       debug.set(-step_phase, -step_att, direction, adpKey, basePoint, cv, pv)
     # plusとminus方向それぞれの回帰直線を作成
     plus_model = LinearRegression()
