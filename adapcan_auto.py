@@ -1195,9 +1195,9 @@ class DebugFile:
     self.att.append(adpKey.att)
     self.basePoint_phase.append(basePoint.phase)
     self.basePoint_att.append(basePoint.att)
-    self.cv.append(cv)
-    self.pv.append(pv)
-    self.delta.append(cv-pv)
+    self.cv.append(float(cv))
+    self.pv.append(float(pv))
+    self.delta.append(float(cv)-float(pv))
 
   def output(self):
     t = time.time()
