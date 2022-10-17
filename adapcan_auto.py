@@ -772,7 +772,8 @@ def directionSearch(mcu, ch, adpKey, cntwin):
         phase_dcpower_List.append(pv)
       """
     elif np.sign(min(delta_List)) == 1:  # 最小値がプラスの符号なら最小値の更新がなかったため，探索を続ける
-      while True:
+      for i in range(11):
+      #while True:
         if adpKey.phase + 130 > 4095:
           step_phase = 0
           adpKey.phase = 0
@@ -807,7 +808,8 @@ def directionSearch(mcu, ch, adpKey, cntwin):
       
     
     # さらに最小値が続くかの探索ループ(極小値探索)
-    while True:
+    for i in range(11):
+    #while True:
       if adpKey.phase + 130 > 4095:
         step_phase = 0
         adpKey.phase = 0
@@ -883,7 +885,8 @@ def directionSearch(mcu, ch, adpKey, cntwin):
         phase_dcpower_List.append(pv)
       """
     elif np.sign(min(delta_List)) == 1:  # 最小値がプラスの符号なら最小値の更新がなかったため，探索を続ける
-      while True:
+      for i in range(11):
+      #while True:
         if adpKey.phase - 130 < 0:
           step_phase = 0
           adpKey.phase = 4095
@@ -918,7 +921,8 @@ def directionSearch(mcu, ch, adpKey, cntwin):
       
       
     # さらに最小値が続くかの探索ループ
-    while True:
+    for i in range(11):
+    #while True:
       if adpKey.phase - 130 < 0:
         step_phase = 0
         adpKey.phase = 4095
