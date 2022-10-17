@@ -1422,10 +1422,10 @@ def step_LinearRegression(mcu, ch, step_phase, step_att, adpKey, basePoint, plus
       plus_delta_List.append(plus_delta)
       debug.set(step_phase, step_att, direction, adpKey, basePoint, cv, pv)
       # -方向にstep調整
-      if basePoint.phase - i < 0:
+      if basePoint.att - i < 0:
         adpKey.att = 62 - basePoint.att - i
       else :
-        adpKey.phase = max(0, 62 - basePoint.att - i)
+        adpKey.att = max(0, 62 - basePoint.att - i)
       cntwin.erase()
       cntwin.addstr(9,5, "step track制御を開始")
       cntwin.addstr(10,5, "attの初期探索を開始")
