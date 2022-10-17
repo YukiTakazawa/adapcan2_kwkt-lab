@@ -642,7 +642,7 @@ def stepTrack(mcu, ch, adpKey, cntwin):
   step_att = 0
   direction = "None"
   debug = DebugFile()
-  debug.set(step_phase, step_att, direction, adpKey, basePoint, cv, pv, cntwin)
+  debug.set(step_phase, step_att, direction, adpKey, basePoint, cv, pv)
   
   
   """
@@ -759,7 +759,7 @@ def directionSearch(mcu, ch, adpKey, cntwin):
       time.sleep(1)
       pv = min(plus_delta_List)
       cv = pv
-      debug.set(step_phase, step_att, direction, adpKey, basePoint, cv, pv, cntwin)      
+      debug.set(step_phase, step_att, direction, adpKey, basePoint, cv, pv)      
       """
       # DC powerの最小値を更新(base)
       if AVERAGING == "True":
@@ -793,9 +793,9 @@ def directionSearch(mcu, ch, adpKey, cntwin):
         if float(cv) < float(pv) :
           pv = cv
           basePoint.phase = adpKey.phase
-          debug.set(step_phase, step_att, direction, adpKey, basePoint, cv, pv, cntwin)
+          debug.set(step_phase, step_att, direction, adpKey, basePoint, cv, pv)
           break
-        debug.set(step_phase, step_att, direction, adpKey, basePoint, cv, pv, cntwin)
+        debug.set(step_phase, step_att, direction, adpKey, basePoint, cv, pv)
     else:
       cntwin.erase()
       cntwin.addstr(15,0,"\tplus_delta_Listの最小値の符号が取得できません", curses.color_pair(1))
@@ -828,7 +828,7 @@ def directionSearch(mcu, ch, adpKey, cntwin):
       if float(cv) < float(pv) :
         pv = cv
         basePoint.phase = adpKey.phase
-        debug.set(step_phase, step_att, direction, adpKey, basePoint, cv, pv, cntwin)
+        debug.set(step_phase, step_att, direction, adpKey, basePoint, cv, pv)
       elif float(cv) >= float(pv) :
         if adpKey.phase - 130 < 0:
           step_phase = 0
@@ -845,7 +845,7 @@ def directionSearch(mcu, ch, adpKey, cntwin):
         th.start()
         th.join()
         time.sleep(1)
-        debug.set(step_phase, step_att, direction, adpKey, basePoint, cv, pv, cntwin)
+        debug.set(step_phase, step_att, direction, adpKey, basePoint, cv, pv)
         break
 
   elif direction == "minus":  # 同様に
@@ -868,7 +868,7 @@ def directionSearch(mcu, ch, adpKey, cntwin):
       time.sleep(1)
       pv = min(plus_delta_List)
       cv = pv
-      debug.set(step_phase, step_att, direction, adpKey, basePoint, cv, pv, cntwin)
+      debug.set(step_phase, step_att, direction, adpKey, basePoint, cv, pv)
       """
       # DC powerの最小値を更新(base)
       if AVERAGING == "True":
@@ -902,9 +902,9 @@ def directionSearch(mcu, ch, adpKey, cntwin):
         if float(cv) < float(pv) :
           pv = cv
           basePoint.phase = adpKey.phase
-          debug.set(step_phase, step_att, direction, adpKey, basePoint, cv, pv, cntwin)
+          debug.set(step_phase, step_att, direction, adpKey, basePoint, cv, pv)
           break
-        debug.set(step_phase, step_att, direction, adpKey, basePoint, cv, pv, cntwin)
+        debug.set(step_phase, step_att, direction, adpKey, basePoint, cv, pv)
     else:
       cntwin.erase()
       cntwin.addstr(15,0,"\tplus_delta_Listの最小値の符号が取得できません", curses.color_pair(1))
@@ -937,7 +937,7 @@ def directionSearch(mcu, ch, adpKey, cntwin):
       if float(cv) < float(pv) :
         pv = cv
         basePoint.phase = adpKey.phase
-        debug.set(step_phase, step_att, direction, adpKey, basePoint, cv, pv, cntwin)
+        debug.set(step_phase, step_att, direction, adpKey, basePoint, cv, pv)
       elif float(cv) >= float(pv) :
         if adpKey.phase + 130 > 4095:
           step_phase = 0
@@ -954,7 +954,7 @@ def directionSearch(mcu, ch, adpKey, cntwin):
         th.start()
         th.join()
         time.sleep(1)
-        debug.set(step_phase, step_att, direction, adpKey, basePoint, cv, pv, cntwin)
+        debug.set(step_phase, step_att, direction, adpKey, basePoint, cv, pv)
         break
         
   else:
@@ -1096,7 +1096,7 @@ def step_LinearRegression(mcu, ch, step_phase, step_att, adpKey, basePoint, plus
       cv = pw
     plus_delta = float(cv) - float(pv)
     plus_delta_List.append(plus_delta)
-    debug.set(step_phase, step_att, direction, adpKey, basePoint, cv, pv, cntwin)
+    debug.set(step_phase, step_att, direction, adpKey, basePoint, cv, pv)
     # -方向にstep調整
     if basePoint.phase - 130*i < 0:
       adpKey.phase = 4095 - basePoint.phase - 130*i
@@ -1117,7 +1117,7 @@ def step_LinearRegression(mcu, ch, step_phase, step_att, adpKey, basePoint, plus
       cv = pw
     minus_delta = float(cv) - float(pv)
     minus_delta_List.append(minus_delta)
-    debug.set(-step_phase, -step_att, direction, adpKey, basePoint, cv, pv, cntwin)
+    debug.set(-step_phase, -step_att, direction, adpKey, basePoint, cv, pv)
   # plusとminus方向それぞれの回帰直線を作成
   plus_model = LinearRegression()
   minus_model = LinearRegression()
