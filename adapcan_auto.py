@@ -740,17 +740,17 @@ def directionSearch(mcu, ch, adpKey, cntwin):
   # phase調整
   direction = step_LinearRegression(mcu, ch, step_phase, step_att, adpKey, basePoint, plus_delta_List, minus_delta_List, cv, pv, cntwin, debug, "phase")
   if direction == "plus":
-    index = len(plus_delta_List)
-    delta_List = plus_delta_List[index-5:index]
-    if np.sign(min(delta_List)) == -1:  # 最小値がマイナスの符号なら最小値の更新があったと考えられる
+    # index = len(plus_delta_List)
+    # delta_List = plus_delta_List[index-5:index]
+    if np.sign(min(plus_delta_List)) == -1:  # 最小値がマイナスの符号なら最小値の更新があったと考えられる
       # リスト内の最小値のインデックスから，phase = 0からのシフト量を求めてbasePointを更新する
-      if basePoint.phase + 130*(plus_delta_List.index(min(delta_List))+1) > 4095:
-        basePoint.phase = basePoint.phase + 130*(delta_List.index(min(delta_List))+1) - 4095
+      if basePoint.phase + 130*(plus_delta_List.index(min(plus_delta_List))+1) > 4095:
+        basePoint.phase = basePoint.phase + 130*(plus_delta_List.index(min(plus_delta_List))+1) - 4095
         step_phase = math.floor(basePoint.phase / 130)
         adpKey.phase = basePoint.phase
       else :
-        basePoint.phase = min(4095, basePoint.phase + 130*(delta_List.index(min(delta_List))+1))
-        step_phase = delta_List.index(min(delta_List))+1
+        basePoint.phase = min(4095, basePoint.phase + 130*(plus_delta_List.index(min(plus_delta_List))+1))
+        step_phase = plus_delta_List.index(min(plus_delta_List))+1
         adpKey.phase = basePoint.phase
       cntwin.erase()
       cntwin.addstr(9,5, "step track制御を開始")
@@ -761,7 +761,7 @@ def directionSearch(mcu, ch, adpKey, cntwin):
       th.start()
       th.join()
       time.sleep(1)
-      pv = min(delta_List)
+      pv = min(plus_delta_List)
       cv = pv
       debug.set(step_phase, step_att, direction, adpKey, basePoint, cv, pv)
       flag = "True"
@@ -774,7 +774,7 @@ def directionSearch(mcu, ch, adpKey, cntwin):
         pv = pw
         phase_dcpower_List.append(pv)
       """
-    elif np.sign(min(delta_List)) == 1:  # 最小値がプラスの符号なら最小値の更新がなかったため，探索を続ける
+    elif np.sign(min(plus_delta_List)) == 1:  # 最小値がプラスの符号なら最小値の更新がなかったため，探索を続ける
       for i in range(11):
       #while True:
         if adpKey.phase + 130 > 4095:
@@ -858,15 +858,15 @@ def directionSearch(mcu, ch, adpKey, cntwin):
           break
 
   elif direction == "minus":  # 同様に
-    index = len(minus_delta_List)
-    delta_List = minus_delta_List[index-5:index]
-    if np.sign(min(delta_List)) == -1:  # 最小値がマイナスの符号なら最小値の更新があったと考えられる
+    # index = len(minus_delta_List)
+    # delta_List = minus_delta_List[index-5:index]
+    if np.sign(min(minus_delta_List)) == -1:  # 最小値がマイナスの符号なら最小値の更新があったと考えられる
       # リスト内の最小値のインデックスから，phase = 0からのシフト量を求めてbasePointを更新する
-      if basePoint.phase - 130*(delta_List.index(min(delta_List))+1) < 0:
-        basePoint.phase = 4095 - 130*(delta_List.index(min(delta_List))+1)
+      if basePoint.phase - 130*(minus_delta_List.index(min(minus_delta_List))+1) < 0:
+        basePoint.phase = 4095 - 130*(minus_delta_List.index(min(minus_delta_List))+1)
         adpKey.phase = basePoint.phase
       else :
-        basePoint.phase = max(0, basePoint.phase - 130*(delta_List.index(min(delta_List))+1))
+        basePoint.phase = max(0, basePoint.phase - 130*(minus_delta_List.index(min(minus_delta_List))+1))
         adpKey.phase = basePoint.phase
       cntwin.erase()
       cntwin.addstr(9,5, "step track制御を開始")
@@ -877,7 +877,7 @@ def directionSearch(mcu, ch, adpKey, cntwin):
       th.start()
       th.join()
       time.sleep(1)
-      pv = min(delta_List)
+      pv = min(minus_delta_List)
       cv = pv
       debug.set(step_phase, step_att, direction, adpKey, basePoint, cv, pv)
       flag = "True"
@@ -890,7 +890,7 @@ def directionSearch(mcu, ch, adpKey, cntwin):
         pv = pw
         phase_dcpower_List.append(pv)
       """
-    elif np.sign(min(delta_List)) == 1:  # 最小値がプラスの符号なら最小値の更新がなかったため，探索を続ける
+    elif np.sign(min(minus_delta_List)) == 1:  # 最小値がプラスの符号なら最小値の更新がなかったため，探索を続ける
       for i in range(11):
       #while True:
         if adpKey.phase - 130 < 0:
@@ -984,17 +984,17 @@ def directionSearch(mcu, ch, adpKey, cntwin):
   # att調整
   direction = step_LinearRegression(mcu, ch, step_phase, step_att, adpKey, basePoint, plus_delta_List, minus_delta_List, cv, pv, cntwin, debug, "att")
   if direction == "plus":
-    index = len(plus_delta_List)
-    delta_List = plus_delta_List[index-5:index]
-    if np.sign(min(delta_List)) == -1:  # 最小値がマイナスの符号なら最小値の更新があったと考えられる
+    # index = len(plus_delta_List)
+    # delta_List = plus_delta_List[index-5:index]
+    if np.sign(min(plus_delta_List)) == -1:  # 最小値がマイナスの符号なら最小値の更新があったと考えられる
       # リスト内の最小値のインデックスから，att = 0からのシフト量を求めてbasePointを更新する
-      if basePoint.att + (plus_delta_List.index(min(delta_List))+1) > 62:
-        basePoint.att = basePoint.att + (delta_List.index(min(delta_List))+1) - 62
+      if basePoint.att + (plus_delta_List.index(min(plus_delta_List))+1) > 62:
+        basePoint.att = basePoint.att + (plus_delta_List.index(min(plus_delta_List))+1) - 62
         step_att = basePoint.att
         adpKey.att = basePoint.att
       else :
-        basePoint.att = min(63, basePoint.att + (delta_List.index(min(delta_List))+1))
-        step_att = delta_List.index(min(delta_List))+1
+        basePoint.att = min(63, basePoint.att + (plus_delta_List.index(min(plus_delta_List))+1))
+        step_att = plus_delta_List.index(min(plus_delta_List))+1
         adpKey.att = basePoint.att
       cntwin.erase()
       cntwin.addstr(9,5, "step track制御を開始")
@@ -1005,7 +1005,7 @@ def directionSearch(mcu, ch, adpKey, cntwin):
       th.start()
       th.join()
       time.sleep(1)
-      pv = min(delta_List)
+      pv = min(plus_delta_List)
       cv = pv
       debug.set(step_phase, step_att, direction, adpKey, basePoint, cv, pv)
       flag = "True"
@@ -1018,7 +1018,7 @@ def directionSearch(mcu, ch, adpKey, cntwin):
         pv = pw
         phase_dcpower_List.append(pv)
       """
-    elif np.sign(min(delta_List)) == 1:  # 最小値がプラスの符号なら最小値の更新がなかったため，探索を続ける
+    elif np.sign(min(plus_delta_List)) == 1:  # 最小値がプラスの符号なら最小値の更新がなかったため，探索を続ける
       for i in range(11):
       #while True:
         if adpKey.att + 1 > 62:
@@ -1102,15 +1102,15 @@ def directionSearch(mcu, ch, adpKey, cntwin):
           break
 
   elif direction == "minus":  # 同様に
-    index = len(minus_delta_List)
-    delta_List = minus_delta_List[index-5:index]
-    if np.sign(min(delta_List)) == -1:  # 最小値がマイナスの符号なら最小値の更新があったと考えられる
+    # index = len(minus_delta_List)
+    # delta_List = minus_delta_List[index-5:index]
+    if np.sign(min(minus_delta_List)) == -1:  # 最小値がマイナスの符号なら最小値の更新があったと考えられる
       # リスト内の最小値のインデックスから，att = 0からのシフト量を求めてbasePointを更新する
-      if basePoint.att - (delta_List.index(min(delta_List))+1) < 0:
-        basePoint.att = 63 - (delta_List.index(min(delta_List))+1)
+      if basePoint.att - (minus_delta_List.index(min(minus_delta_List))+1) < 0:
+        basePoint.att = 63 - (minus_delta_List.index(min(minus_delta_List))+1)
         adpKey.att = basePoint.att
       else :
-        basePoint.att = max(0, basePoint.att - (delta_List.index(min(delta_List))+1))
+        basePoint.att = max(0, basePoint.att - (minus_delta_List.index(min(minus_delta_List))+1))
         adpKey.att = basePoint.att
       cntwin.erase()
       cntwin.addstr(9,5, "step track制御を開始")
@@ -1121,7 +1121,7 @@ def directionSearch(mcu, ch, adpKey, cntwin):
       th.start()
       th.join()
       time.sleep(1)
-      pv = min(delta_List)
+      pv = min(minus_delta_List)
       cv = pv
       debug.set(step_phase, step_att, direction, adpKey, basePoint, cv, pv)
       flag = "True"
@@ -1134,7 +1134,7 @@ def directionSearch(mcu, ch, adpKey, cntwin):
         pv = pw
         phase_dcpower_List.append(pv)
       """
-    elif np.sign(min(delta_List)) == 1:  # 最小値がプラスの符号なら最小値の更新がなかったため，探索を続ける
+    elif np.sign(min(minus_delta_List)) == 1:  # 最小値がプラスの符号なら最小値の更新がなかったため，探索を続ける
       for i in range(11):
       #while True:
         if adpKey.att - 1 < 0:
