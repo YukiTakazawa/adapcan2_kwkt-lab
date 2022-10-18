@@ -635,8 +635,8 @@ def stepTrack(mcu, ch, adpKey, cntwin):
   # Pointの基準点basePointをphase, attをともに0で初期化
   basePoint = adapcanKeys(0, 0)
   debug = DebugFile()
-  debug.set(adpKey, basePoint, param)
   param = TrackParam()
+  debug.set(adpKey, basePoint, param)
   # 初期化時のDC powerを取得
   if AVERAGING == "True":
     param.pv = float(pwa)
