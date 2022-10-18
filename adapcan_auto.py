@@ -1379,8 +1379,8 @@ def step_LinearRegression(mcu, ch, adpKey, basePoint, cntwin, debug, param, sett
     minus_model = LinearRegression()
     plus_model.fit(pd.DataFrame(range(1, 6)), pd.DataFrame(param.plus_delta_List))
     minus_model.fit(pd.DataFrame(range(1, 6)), pd.DataFrame(param.minus_delta_List))
-    param.plus_model.output(plus_model.coef_, plus_model.intercept)
-    param.minus_model.output(minus_model.coef_, minus_model.intercept)
+    param.plus_model_output(plus_model.coef_, plus_model.intercept)
+    param.minus_model_output(minus_model.coef_, minus_model.intercept)
     # 回帰直線から(i+1)step後に最小値量へ向かっている方向を探す
     plus_slope = plus_model.coef_ * 6 + plus_model.intercept_
     minus_slope = minus_model.coef_ * 6 + minus_model.intercept_
@@ -1449,6 +1449,8 @@ def step_LinearRegression(mcu, ch, adpKey, basePoint, cntwin, debug, param, sett
     minus_model = LinearRegression()
     plus_model.fit(pd.DataFrame(range(1, 6)), pd.DataFrame(param.plus_delta_List))
     minus_model.fit(pd.DataFrame(range(1, 6)), pd.DataFrame(param.minus_delta_List))
+    param.plus_model_output(plus_model.coef_, plus_model.intercept)
+    param.minus_model_output(minus_model.coef_, minus_model.intercept)
     # 回帰直線から(i+1)step後に最小値量へ向かっている方向を探す
     plus_slope = plus_model.coef_ * 6 + plus_model.intercept_
     minus_slope = minus_model.coef_ *6 + minus_model.intercept_
