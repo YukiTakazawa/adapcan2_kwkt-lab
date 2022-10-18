@@ -1574,10 +1574,10 @@ class TrackParam:
     self.minus_delta_List = []
   
   def plus_model_output(self, coef, intercept):
-    plus_model = coef + " x " + intercept
+    plus_model = str(coef) + " x " + str(intercept)
     
   def minus_model_output(self, coef, intercept):
-    minus_model = coef + " x " + intercept
+    minus_model = str(coef) + " x " + str(intercept)
 
 
 if __name__ == '__main__':
