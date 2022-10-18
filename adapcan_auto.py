@@ -1328,8 +1328,7 @@ def stepTrack(mcu, ch, adpKey, cntwin, direction, setting):
 def step_LinearRegression(mcu, ch, adpKey, basePoint, cntwin, debug, param, setting):  # 最小値設定のbasePointを渡し，basePointから±nstep動かす
   param.delta_List_init()  # 線形回帰モデル作成のためのdelta_List[5]の初期化
   param.direction = "None"
-  param.plus_model = "None"
-  param.minus_model = "None"
+  param.model_init()
   # phaseの探索
   if setting == "phase":
     for i in range(1,6):
@@ -1582,6 +1581,10 @@ class TrackParam:
     
   def minus_model_output(self, coef, intercept):
     minus_model = str(coef) + "x + (" + str(intercept) + ")"
+  
+  def model_init(self):
+    self.plus_model = "None"
+    self.minus_model = "None"
 
 
 if __name__ == '__main__':
