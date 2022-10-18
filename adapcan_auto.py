@@ -1385,7 +1385,7 @@ def step_LinearRegression(mcu, ch, adpKey, basePoint, cntwin, debug, param, sett
     # 回帰直線から(i+1)step後に最小値量へ向かっている方向を探す
     plus_slope = plus_model.coef_ * 6 + plus_model.intercept_
     minus_slope = minus_model.coef_ * 6 + minus_model.intercept_
-    debug.set(adpKey, basePoint, param)
+    #debug.set(adpKey, basePoint, param)
     if plus_slope < minus_slope:
       param.direction = "plus"
       return
@@ -1455,7 +1455,7 @@ def step_LinearRegression(mcu, ch, adpKey, basePoint, cntwin, debug, param, sett
     # 回帰直線から(i+1)step後に最小値量へ向かっている方向を探す
     plus_slope = plus_model.coef_ * 6 + plus_model.intercept_
     minus_slope = minus_model.coef_ *6 + minus_model.intercept_
-    debug.set(adpKey, basePoint, param)
+    #debug.set(adpKey, basePoint, param)
     if plus_slope < minus_slope:
       param.direction = "plus"
       return
@@ -1577,10 +1577,10 @@ class TrackParam:
     self.minus_delta_List = []
   
   def plus_model_output(self, coef, intercept):
-    plus_model = str(coef) + "x + (" + str(intercept) + ")"
+    self.plus_model = str(coef) + "x + (" + str(intercept) + ")"
     
   def minus_model_output(self, coef, intercept):
-    minus_model = str(coef) + "x + (" + str(intercept) + ")"
+    self.minus_model = str(coef) + "x + (" + str(intercept) + ")"
   
   def model_init(self):
     self.plus_model = "None"
