@@ -1328,6 +1328,8 @@ def stepTrack(mcu, ch, adpKey, cntwin, direction, setting):
 def step_LinearRegression(mcu, ch, adpKey, basePoint, cntwin, debug, param, setting):  # 最小値設定のbasePointを渡し，basePointから±nstep動かす
   param.delta_List_init()  # 線形回帰モデル作成のためのdelta_List[5]の初期化
   param.direction = "None"
+  param.plus_model = "None"
+  param.minus_model = "None"
   # phaseの探索
   if setting == "phase":
     for i in range(1,6):
@@ -1539,7 +1541,7 @@ class DebugFile:
   def output(self):
     t = time.time()
     dt = datetime.datetime.fromtimestamp(t)
-    debug_File = pd.DataFrame([self.step_phase, self.step_att, self.phase, self.att, self.basePoint_phase, self.basePoint_att, self.cv, self.pv, self.delta, self.direction], index=['step_phase', 'step_att', 'phase', 'att', 'basePoint.phase', 'basePoint.att', 'cv', 'pv', 'delta', 'direction', 'plus_model', 'minus_model'])
+    debug_File = pd.DataFrame([self.step_phase, self.step_att, self.phase, self.att, self.basePoint_phase, self.basePoint_att, self.cv, self.pv, self.delta, self.direction, self.plus_model, self.minus_model], index=['step_phase', 'step_att', 'phase', 'att', 'basePoint.phase', 'basePoint.att', 'cv', 'pv', 'delta', 'direction', 'plus_model', 'minus_model'])
     # 最小のphase値探索の検証excelを出力
     debug_File.to_excel('stepTrack_Debug'+ str(dt) +'.xlsx')
     
