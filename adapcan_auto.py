@@ -1379,6 +1379,8 @@ def step_LinearRegression(mcu, ch, adpKey, basePoint, cntwin, debug, param, sett
     minus_model = LinearRegression()
     plus_model.fit(pd.DataFrame(range(1, 6)), pd.DataFrame(param.plus_delta_List))
     minus_model.fit(pd.DataFrame(range(1, 6)), pd.DataFrame(param.minus_delta_List))
+    param.plus_model.output(plus_model.coef_, plus_model.intercept)
+    param.minus_model.output(minus_model.coef_, minus_model.intercept)
     # 回帰直線から(i+1)step後に最小値量へ向かっている方向を探す
     plus_slope = plus_model.coef_ * 6 + plus_model.intercept_
     minus_slope = minus_model.coef_ * 6 + minus_model.intercept_
@@ -1515,6 +1517,8 @@ class DebugFile:
     self.cv = []
     self.pv = []
     self.delta = []
+    self.plus_model = []
+    self.minus_model = []
   
   def set(self, adpKey, basePoint, param):
     self.step_phase.append(param.step_phase)
@@ -1527,11 +1531,13 @@ class DebugFile:
     self.cv.append(float(param.cv))
     self.pv.append(float(param.pv))
     self.delta.append(float(param.delta))
+    self.plus_model.append(param.plus_model)
+    self.minus_model.append(param.minus_model)
 
   def output(self):
     t = time.time()
     dt = datetime.datetime.fromtimestamp(t)
-    debug_File = pd.DataFrame([self.step_phase, self.step_att, self.phase, self.att, self.basePoint_phase, self.basePoint_att, self.cv, self.pv, self.delta, self.direction], index=['step_phase', 'step_att', 'phase', 'att', 'basePoint.phase', 'basePoint.att', 'cv', 'pv', 'delta', 'direction'])
+    debug_File = pd.DataFrame([self.step_phase, self.step_att, self.phase, self.att, self.basePoint_phase, self.basePoint_att, self.cv, self.pv, self.delta, self.direction], index=['step_phase', 'step_att', 'phase', 'att', 'basePoint.phase', 'basePoint.att', 'cv', 'pv', 'delta', 'direction', 'plus_model', 'minus_model'])
     # 最小のphase値探索の検証excelを出力
     debug_File.to_excel('stepTrack_Debug'+ str(dt) +'.xlsx')
     
@@ -1543,6 +1549,8 @@ class TrackParam:
     self.step_phase = 0
     self.step_att = 0
     self.delta = 0.0
+    self.plus_model = "None"
+    self.minus_model = "None"
     self.plus_delta_List = []
     self.minus_delta_List = []
     
@@ -1564,6 +1572,12 @@ class TrackParam:
   def delta_List_init(self):
     self.plus_delta_List = []
     self.minus_delta_List = []
+  
+  def plus_model_output(self, coef, intercept):
+    plus_model = coef + " x " + intercept
+    
+  def minus_model_output(self, coef, intercept):
+    minus_model = coef + " x " + intercept
 
 
 if __name__ == '__main__':
