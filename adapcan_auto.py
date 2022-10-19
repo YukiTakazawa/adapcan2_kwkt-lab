@@ -1374,6 +1374,7 @@ def step_LinearRegression(mcu, ch, adpKey, basePoint, cntwin, debug, param, sett
       param.increase_delta_append(param.delta)
       debug.set(adpKey, basePoint, param)
       # -方向にstep調整
+      param.step_phase_incre()
       if basePoint.phase - 130*i < 0:
         adpKey.phase = 4095 - basePoint.phase - 130*i
       else :
@@ -1408,7 +1409,7 @@ def step_LinearRegression(mcu, ch, adpKey, basePoint, cntwin, debug, param, sett
     #debug.set(adpKey, basePoint, param)
     """
     linear_model = LinearRegression()
-    linear_model.fit(pd.DataFrame(range(1,11)), pd.DataFrame(param.increase_delta_List.extend + param.decrease_delta_List))
+    linear_model.fit(pd.DataFrame(range(1,11)), pd.DataFrame(param.increase_delta_List.extend(param.decrease_delta_List)))
     param.linear_model_output(linear_model.coef_)
     if np.sign(linear_model.coef_) == 1:
       param.direction = "increase"
@@ -1448,6 +1449,7 @@ def step_LinearRegression(mcu, ch, adpKey, basePoint, cntwin, debug, param, sett
       param.delta_calc()
       param.increase_delta_append(param.delta)
       debug.set(adpKey, basePoint, param)
+      param.step_phase_incre()
       # -方向にstep調整
       if basePoint.att - i < 0:
         adpKey.att = 62 - basePoint.att - i
@@ -1483,7 +1485,7 @@ def step_LinearRegression(mcu, ch, adpKey, basePoint, cntwin, debug, param, sett
     #debug.set(adpKey, basePoint, param)
     """
     linear_model = LinearRegression()
-    linear_model.fit(pd.DataFrame(range(1,11)), pd.DataFrame(param.increase_delta_List.extend + param.decrease_delta_List))
+    linear_model.fit(pd.DataFrame(range(1,11)), pd.DataFrame(param.increase_delta_List.extend(param.decrease_delta_List)))
     param.linear_model_output(linear_model.coef_)
     if np.sign(linear_model.coef_) == 1:
       param.direction = "increase"
