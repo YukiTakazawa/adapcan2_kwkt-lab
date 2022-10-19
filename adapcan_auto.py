@@ -591,8 +591,8 @@ def stepTrack(mcu, ch, adpKey, cntwin):
   # デバッグ用
   # global phase_List
   # global att_List
-  # global plus_delta_List
-  # global minus_delta_List
+  # global increase_delta_List
+  # global decrease_delta_List
   # global step_phase_List
   # global step_att_List
   # global cv_List
@@ -611,8 +611,8 @@ def stepTrack(mcu, ch, adpKey, cntwin):
   # att_List = []
   # step_phase_List = []
   # step_att_List = []
-  # plus_delta_List = []
-  # minus_delta_List = []
+  # increase_delta_List = []
+  # decrease_delta_List = []
   # delta_List = []
   flag = "None"
   # phase_iteration_List = list(range(32))
@@ -651,7 +651,7 @@ def stepTrack(mcu, ch, adpKey, cntwin):
   if direction[0] == "None":
     # もしNoneなら最小値の更新がなかったため，attの調整だけしてstepTrackを終了する
     pass
-  elif direction[0] == "plus":
+  elif direction[0] == "increase":
     while True:
       if basePoint.phase + 130*(direction[1]+1) > 4095:
         adpKey.phase = 0
@@ -673,7 +673,7 @@ def stepTrack(mcu, ch, adpKey, cntwin):
         break
       # pvを更新
       pv = cv
-  elif direction[0] == "minus":
+  elif direction[0] == "decrease":
     
   else:
     cntwin.erase()
@@ -686,7 +686,7 @@ def stepTrack(mcu, ch, adpKey, cntwin):
   
   
   """
-  # 初期探索として，step制御をplus or minusのどちらで制御するか決定する
+  # 初期探索として，step制御をincrease or decreaseのどちらで制御するか決定する
 def directionSearch(mcu, ch, adpKey, cntwin):
   for step in range(15):
     # +方向にstep調整
@@ -704,7 +704,7 @@ def directionSearch(mcu, ch, adpKey, cntwin):
     else:
       cv = pw
       phase_dcpower_List.append(cv)
-    plus_delta = cv-pv
+    increase_delta = cv-pv
     # -方向にstep調整
     if basePoint.phase - 130*(step+1) < 0:
       adpKey.phase = 4095
@@ -720,15 +720,15 @@ def directionSearch(mcu, ch, adpKey, cntwin):
     else:
       cv = pw
       phase_dcpower_List.append(cv)
-    minus_delta = cv - pv
+    decrease_delta = cv - pv
     # 前step差分と後step差分のどちらかが－符号のときのみ比較する
-    if np.sign(plus_delta)==-1 or np.sign(minus_delta)==-1:
-      if plus_delta < minus_delta:
+    if np.sign(increase_delta)==-1 or np.sign(decrease_delta)==-1:
+      if increase_delta < decrease_delta:
         pv = phase_dcpower_List[len(phase_dcpower_List-2)]
-        return "plus", step+1
-      elif plus_delta > minus_delta:
+        return "increase", step+1
+      elif increase_delta > decrease_delta:
         pv = phase_dcpower_List[len(phase_dcpower_List-1)]
-        return "minus", step+1
+        return "decrease", step+1
       else:
         return
   return "None"
@@ -736,18 +736,18 @@ def directionSearch(mcu, ch, adpKey, cntwin):
   
   # phase調整
   step_LinearRegression(mcu, ch, adpKey, basePoint, cntwin, debug, param, "phase")
-  if param.direction == "plus":
-    index = len(param.plus_delta_List)
-    plus_delta_List = param.plus_delta_List[index-5:index]
-    if np.sign(min(plus_delta_List)) == -1:  # 最小値がマイナスの符号なら最小値の更新があったと考えられる
+  if param.direction == "increase":
+    index = len(param.increase_delta_List)
+    increase_delta_List = param.increase_delta_List[index-5:index]
+    if np.sign(min(increase_delta_List)) == -1:  # 最小値がマイナスの符号なら最小値の更新があったと考えられる
       # リスト内の最小値のインデックスから，phase = 0からのシフト量を求めてbasePointを更新する
-      if basePoint.phase + 130*(plus_delta_List.index(min(plus_delta_List))+1) > 4095:
-        basePoint.phase = basePoint.phase + 130*(plus_delta_List.index(min(plus_delta_List))+1) - 4095
+      if basePoint.phase + 130*(increase_delta_List.index(min(increase_delta_List))+1) > 4095:
+        basePoint.phase = basePoint.phase + 130*(increase_delta_List.index(min(increase_delta_List))+1) - 4095
         param.step_phase = math.floor(basePoint.phase / 130)
         adpKey.phase = basePoint.phase
       else :
-        basePoint.phase = min(4095, basePoint.phase + 130*(plus_delta_List.index(min(plus_delta_List))+1))
-        param.step_phase = plus_delta_List.index(min(plus_delta_List))+1
+        basePoint.phase = min(4095, basePoint.phase + 130*(increase_delta_List.index(min(increase_delta_List))+1))
+        param.step_phase = increase_delta_List.index(min(increase_delta_List))+1
         adpKey.phase = basePoint.phase
       cntwin.erase()
       cntwin.addstr(9,5, "step track制御を開始")
@@ -758,8 +758,9 @@ def directionSearch(mcu, ch, adpKey, cntwin):
       th.start()
       th.join()
       time.sleep(1)
-      param.pv = min(plus_delta_List)
+      param.pv = min(increase_delta_List)
       param.cv = param.pv
+      param.delta_calc()
       debug.set(adpKey, basePoint, param)
       flag = "True"
       """
@@ -771,7 +772,7 @@ def directionSearch(mcu, ch, adpKey, cntwin):
         pv = pw
         phase_dcpower_List.append(pv)
       """
-    elif np.sign(min(plus_delta_List)) == 1:  # 最小値がプラスの符号なら最小値の更新がなかったため，探索を続ける
+    elif np.sign(min(increase_delta_List)) == 1:  # 最小値がプラスの符号なら最小値の更新がなかったため，探索を続ける
       for i in range(11):
       #while True:
         if adpKey.phase + 130 > 4095:
@@ -793,16 +794,18 @@ def directionSearch(mcu, ch, adpKey, cntwin):
           param.cv = float(pwa)
         else:
           param.cv = float(pw)
+        param.delta_calc()
+        debug.set(adpKey, basePoint, param)
         if param.cv < param.pv :
           param.pv = param.cv
           basePoint.phase = adpKey.phase
-          debug.set(adpKey, basePoint, param)
           flag = "True"
+          param.delta_calc()
+          debug.set(adpKey, basePoint, param)
           break
-        debug.set(adpKey, basePoint, param)
     else:
       cntwin.erase()
-      cntwin.addstr(15,0,"\tplus_delta_Listの最小値の符号が取得できません", curses.color_pair(1))
+      cntwin.addstr(15,0,"\tincrease_delta_Listの最小値の符号が取得できません", curses.color_pair(1))
       cntwin.refresh()
       time.sleep(10)
       return
@@ -831,10 +834,11 @@ def directionSearch(mcu, ch, adpKey, cntwin):
           param.cv = float(pwa)
         else:
           param.cv = float(pw)
+        param.delta_calc()
+        debug.set(adpKey, basePoint, param)
         if param.cv < param.pv :
           param.pv = param.cv
           basePoint.phase = adpKey.phase
-          debug.set(adpKey, basePoint, param)
         elif param.cv >= param.pv :
           if adpKey.phase - 130 < 0:
             param.step_phase = 0
@@ -851,19 +855,20 @@ def directionSearch(mcu, ch, adpKey, cntwin):
           th.start()
           th.join()
           time.sleep(1)
+          param.delta_calc()
           debug.set(adpKey, basePoint, param)
           break
 
-  elif param.direction == "minus":  # 同様に
-    index = len(param.minus_delta_List)
-    minus_delta_List = param.minus_delta_List[index-5:index]
-    if np.sign(min(minus_delta_List)) == -1:  # 最小値がマイナスの符号なら最小値の更新があったと考えられる
+  elif param.direction == "decrease":  # 同様に
+    index = len(param.decrease_delta_List)
+    decrease_delta_List = param.decrease_delta_List[index-5:index]
+    if np.sign(min(decrease_delta_List)) == -1:  # 最小値がマイナスの符号なら最小値の更新があったと考えられる
       # リスト内の最小値のインデックスから，phase = 0からのシフト量を求めてbasePointを更新する
-      if basePoint.phase - 130*(minus_delta_List.index(min(minus_delta_List))+1) < 0:
-        basePoint.phase = 4095 - 130*(minus_delta_List.index(min(minus_delta_List))+1)
+      if basePoint.phase - 130*(decrease_delta_List.index(min(decrease_delta_List))+1) < 0:
+        basePoint.phase = 4095 - 130*(decrease_delta_List.index(min(decrease_delta_List))+1)
         adpKey.phase = basePoint.phase
       else :
-        basePoint.phase = max(0, basePoint.phase - 130*(minus_delta_List.index(min(minus_delta_List))+1))
+        basePoint.phase = max(0, basePoint.phase - 130*(decrease_delta_List.index(min(decrease_delta_List))+1))
         adpKey.phase = basePoint.phase
       cntwin.erase()
       cntwin.addstr(9,5, "step track制御を開始")
@@ -874,8 +879,9 @@ def directionSearch(mcu, ch, adpKey, cntwin):
       th.start()
       th.join()
       time.sleep(1)
-      param.pv = min(minus_delta_List)
+      param.pv = min(decrease_delta_List)
       param.cv = param.pv
+      param.delta_calc()
       debug.set(adpKey, basePoint, param)
       flag = "True"
       """
@@ -887,7 +893,7 @@ def directionSearch(mcu, ch, adpKey, cntwin):
         pv = pw
         phase_dcpower_List.append(pv)
       """
-    elif np.sign(min(minus_delta_List)) == 1:  # 最小値がプラスの符号なら最小値の更新がなかったため，探索を続ける
+    elif np.sign(min(decrease_delta_List)) == 1:  # 最小値がプラスの符号なら最小値の更新がなかったため，探索を続ける
       for i in range(11):
       #while True:
         if adpKey.phase - 130 < 0:
@@ -912,13 +918,15 @@ def directionSearch(mcu, ch, adpKey, cntwin):
         if param.cv < param.pv :
           param.pv = param.cv
           basePoint.phase = adpKey.phase
+          param.delta_calc()
           debug.set(adpKey, basePoint, param)
           flag = "True"
           break
+        param.delta_calc()
         debug.set(adpKey, basePoint, param)
     else:
       cntwin.erase()
-      cntwin.addstr(15,0,"\tplus_delta_Listの最小値の符号が取得できません", curses.color_pair(1))
+      cntwin.addstr(15,0,"\tincrease_delta_Listの最小値の符号が取得できません", curses.color_pair(1))
       cntwin.refresh()
       time.sleep(10)
       return
@@ -949,6 +957,7 @@ def directionSearch(mcu, ch, adpKey, cntwin):
         if param.cv < param.pv :
           param.pv = param.cv
           basePoint.phase = adpKey.phase
+          param.delta_calc()
           debug.set(adpKey, basePoint, param)
         elif param.cv >= param.pv :
           if adpKey.phase + 130 > 4095:
@@ -966,6 +975,7 @@ def directionSearch(mcu, ch, adpKey, cntwin):
           th.start()
           th.join()
           time.sleep(1)
+          param.delta_calc()
           debug.set(adpKey, basePoint, param)
           break
         
@@ -980,18 +990,18 @@ def directionSearch(mcu, ch, adpKey, cntwin):
   
   # att調整
   step_LinearRegression(mcu, ch, adpKey, basePoint, cntwin, debug, param, "att")
-  if param.direction == "plus":
-    index = len(param.plus_delta_List)
-    plus_delta_List = param.plus_delta_List[index-5:index]
-    if np.sign(min(param.plus_delta_List)) == -1:  # 最小値がマイナスの符号なら最小値の更新があったと考えられる
+  if param.direction == "increase":
+    index = len(param.increase_delta_List)
+    increase_delta_List = param.increase_delta_List[index-5:index]
+    if np.sign(min(param.increase_delta_List)) == -1:  # 最小値がマイナスの符号なら最小値の更新があったと考えられる
       # リスト内の最小値のインデックスから，att = 0からのシフト量を求めてbasePointを更新する
-      if basePoint.att + (param.plus_delta_List.index(min(param.plus_delta_List))+1) > 62:
-        basePoint.att = basePoint.att + (param.plus_delta_List.index(min(param.plus_delta_List))+1) - 62
+      if basePoint.att + (param.increase_delta_List.index(min(param.increase_delta_List))+1) > 62:
+        basePoint.att = basePoint.att + (param.increase_delta_List.index(min(param.increase_delta_List))+1) - 62
         param.step_att = basePoint.att
         adpKey.att = basePoint.att
       else :
-        basePoint.att = min(63, basePoint.att + (param.plus_delta_List.index(min(param.plus_delta_List))+1))
-        param.step_att = param.plus_delta_List.index(min(param.plus_delta_List))+1
+        basePoint.att = min(63, basePoint.att + (param.increase_delta_List.index(min(param.increase_delta_List))+1))
+        param.step_att = param.increase_delta_List.index(min(param.increase_delta_List))+1
         adpKey.att = basePoint.att
       cntwin.erase()
       cntwin.addstr(9,5, "step track制御を開始")
@@ -1002,8 +1012,9 @@ def directionSearch(mcu, ch, adpKey, cntwin):
       th.start()
       th.join()
       time.sleep(1)
-      param.pv = min(plus_delta_List)
+      param.pv = min(increase_delta_List)
       param.cv = param.pv
+      param.delta_calc()
       debug.set(adpKey, basePoint, param)
       flag = "True"
       """
@@ -1015,7 +1026,7 @@ def directionSearch(mcu, ch, adpKey, cntwin):
         pv = pw
         phase_dcpower_List.append(pv)
       """
-    elif np.sign(min(param.plus_delta_List)) == 1:  # 最小値がプラスの符号なら最小値の更新がなかったため，探索を続ける
+    elif np.sign(min(param.increase_delta_List)) == 1:  # 最小値がプラスの符号なら最小値の更新がなかったため，探索を続ける
       for i in range(11):
       #while True:
         if adpKey.att + 1 > 62:
@@ -1040,13 +1051,15 @@ def directionSearch(mcu, ch, adpKey, cntwin):
         if param.cv < param.pv :
           param.pv = param.cv
           basePoint.att = adpKey.att
+          param.delta_calc()
           debug.set(adpKey, basePoint, param)
           flag = "True"
           break
+        param.delta_calc()
         debug.set(adpKey, basePoint, param)
     else:
       cntwin.erase()
-      cntwin.addstr(15,0,"\tplus_delta_Listの最小値の符号が取得できません", curses.color_pair(1))
+      cntwin.addstr(15,0,"\tincrease_delta_Listの最小値の符号が取得できません", curses.color_pair(1))
       cntwin.refresh()
       time.sleep(10)
       return
@@ -1078,6 +1091,7 @@ def directionSearch(mcu, ch, adpKey, cntwin):
         if param.cv < param.pv :
           param.pv = param.cv
           basePoint.att = adpKey.att
+          param.delta_calc()
           debug.set(adpKey, basePoint, param)
         elif param.cv >= param.pv :
           if adpKey.att - 1 < 0:
@@ -1095,19 +1109,20 @@ def directionSearch(mcu, ch, adpKey, cntwin):
           th.start()
           th.join()
           time.sleep(1)
+          param.delta_calc()
           debug.set(adpKey, basePoint, param)
           break
 
-  elif param.direction == "minus":  # 同様に
-    index = len(param.minus_delta_List)
-    minus_delta_List = param.minus_delta_List[index-5:index]
-    if np.sign(min(minus_delta_List)) == -1:  # 最小値がマイナスの符号なら最小値の更新があったと考えられる
+  elif param.direction == "decrease":  # 同様に
+    index = len(param.decrease_delta_List)
+    decrease_delta_List = param.decrease_delta_List[index-5:index]
+    if np.sign(min(decrease_delta_List)) == -1:  # 最小値がマイナスの符号なら最小値の更新があったと考えられる
       # リスト内の最小値のインデックスから，att = 0からのシフト量を求めてbasePointを更新する
-      if basePoint.att - (minus_delta_List.index(min(minus_delta_List))+1) < 0:
-        basePoint.att = 63 - (minus_delta_List.index(min(minus_delta_List))+1)
+      if basePoint.att - (decrease_delta_List.index(min(decrease_delta_List))+1) < 0:
+        basePoint.att = 63 - (decrease_delta_List.index(min(decrease_delta_List))+1)
         adpKey.att = basePoint.att
       else :
-        basePoint.att = max(0, basePoint.att - (minus_delta_List.index(min(minus_delta_List))+1))
+        basePoint.att = max(0, basePoint.att - (decrease_delta_List.index(min(decrease_delta_List))+1))
         adpKey.att = basePoint.att
       cntwin.erase()
       cntwin.addstr(9,5, "step track制御を開始")
@@ -1118,8 +1133,9 @@ def directionSearch(mcu, ch, adpKey, cntwin):
       th.start()
       th.join()
       time.sleep(1)
-      param.pv = min(minus_delta_List)
+      param.pv = min(decrease_delta_List)
       param.cv = param.pv
+      param.delta_calc()
       debug.set(adpKey, basePoint, param)
       flag = "True"
       """
@@ -1131,7 +1147,7 @@ def directionSearch(mcu, ch, adpKey, cntwin):
         pv = pw
         phase_dcpower_List.append(pv)
       """
-    elif np.sign(min(minus_delta_List)) == 1:  # 最小値がプラスの符号なら最小値の更新がなかったため，探索を続ける
+    elif np.sign(min(decrease_delta_List)) == 1:  # 最小値がプラスの符号なら最小値の更新がなかったため，探索を続ける
       for i in range(11):
       #while True:
         if adpKey.att - 1 < 0:
@@ -1156,13 +1172,15 @@ def directionSearch(mcu, ch, adpKey, cntwin):
         if param.cv < param.pv :
           param.pv = param.cv
           basePoint.att = adpKey.att
+          param.delta_calc()
           debug.set(adpKey, basePoint, param)
           flag = "True"
           break
+        param.delta_calc()
         debug.set(adpKey, basePoint, param)
     else:
       cntwin.erase()
-      cntwin.addstr(15,0,"\tplus_delta_Listの最小値の符号が取得できません", curses.color_pair(1))
+      cntwin.addstr(15,0,"\tincrease_delta_Listの最小値の符号が取得できません", curses.color_pair(1))
       cntwin.refresh()
       time.sleep(10)
       return
@@ -1193,6 +1211,7 @@ def directionSearch(mcu, ch, adpKey, cntwin):
         if param.cv < param.pv :
           param.pv = param.cv
           basePoint.att = adpKey.att
+          param.delta_calc()
           debug.set(adpKey, basePoint, param)
         elif param.cv >= param.pv :
           if adpKey.att + 1 > 62:
@@ -1210,6 +1229,7 @@ def directionSearch(mcu, ch, adpKey, cntwin):
           th.start()
           th.join()
           time.sleep(1)
+          param.delta_calc()
           debug.set(adpKey, basePoint, param)
           break
         
@@ -1231,8 +1251,7 @@ def directionSearch(mcu, ch, adpKey, cntwin):
     """
     t = time.time()
     dt = datetime.datetime.fromtimestamp(t)
-    debug_File = pd.DataFrame([step_phase_List, step_att_List, phase_List, att_List, basePoint_phase_List, basePoint_att_List, 
-                               cv_List, pv_List], index=['step_phase', 'step_att', 'phase', 'att', 'basePoint.phase', 'basePoint.att', 'cv', 'pv'])
+    debug_File = pd.DataFrame([step_phase_List, step_att_List, phase_List, att_List, basePoint_phase_List, basePoint_att_List, cv_List, pv_List], index=['step_phase', 'step_att', 'phase', 'att', 'basePoint.phase', 'basePoint.att', 'cv', 'pv'])
     # 最小のphase値探索の検証excelを出力
     debug_File.to_excel('stepTrack_Debug'+ str(dt) +'.xlsx')
     """
@@ -1254,7 +1273,7 @@ def directionSearch(mcu, ch, adpKey, cntwin):
 # directionSearchで決めた制御の方向に繰り返し制御する
 def stepTrack(mcu, ch, adpKey, cntwin, direction, setting):
   if setting == "phase":
-    if direction == "plus":
+    if direction == "increase":
       for i in range(5):
         if basePoint.phase + 130*(direction(1)+i) > 4095:
           adpKey.phase = 0
@@ -1276,7 +1295,7 @@ def stepTrack(mcu, ch, adpKey, cntwin, direction, setting):
           break
         # pvを更新
         pv = cv
-    elif direction == "minus":
+    elif direction == "decrease":
       while True:
         if basePoint.phase - 130*(direction(1)+1) < 0:
           adpKey.phase = 0
@@ -1300,19 +1319,19 @@ def stepTrack(mcu, ch, adpKey, cntwin, direction, setting):
         pv = cv
     else:
       cntwin.erase()
-      cntwin.addstr(10,0,"\t変数directonにplusまたはminusが格納されていません", curses.color_pair(1))
+      cntwin.addstr(10,0,"\t変数directonにincreaseまたはdecreaseが格納されていません", curses.color_pair(1))
       cntwin.refresh()
       time.sleep(10)
       return
   
   elif setting == "att":
-    if direction == "plus":
+    if direction == "increase":
       pass
-    elif direction == "minus":
+    elif direction == "decrease":
       pass
     else:
       cntwin.erase()
-      cntwin.addstr(10,0,"\t変数directonにplusまたはminusが格納されていません", curses.color_pair(1))
+      cntwin.addstr(10,0,"\t変数directonにincreaseまたはdecreaseが格納されていません", curses.color_pair(1))
       cntwin.refresh()
       time.sleep(10)
       return
@@ -1352,7 +1371,7 @@ def step_LinearRegression(mcu, ch, adpKey, basePoint, cntwin, debug, param, sett
       else:
         param.cv = float(pw)
       param.delta_calc()
-      param.plus_delta_append(param.delta)
+      param.increase_delta_append(param.delta)
       debug.set(adpKey, basePoint, param)
       # -方向にstep調整
       if basePoint.phase - 130*i < 0:
@@ -1373,28 +1392,33 @@ def step_LinearRegression(mcu, ch, adpKey, basePoint, cntwin, debug, param, sett
       else:
         param.cv = float(pw)
       param.delta_calc()
-      param.minus_delta_append(param.delta)
+      param.decrease_delta_append(param.delta)
       debug.set(adpKey, basePoint, param)
-    # plusとminus方向それぞれの回帰直線を作成
-    plus_model = LinearRegression()
-    minus_model = LinearRegression()
-    plus_model.fit(pd.DataFrame(range(1, 6)), pd.DataFrame(param.plus_delta_List))
-    minus_model.fit(pd.DataFrame(range(1, 6)), pd.DataFrame(param.minus_delta_List))
-    param.plus_model_output(plus_model.coef_, plus_model.intercept_)
-    param.minus_model_output(minus_model.coef_, minus_model.intercept_)
+    """
+    # increaseとdecrease方向それぞれの回帰直線を作成
+    increase_model = LinearRegression()
+    decrease_model = LinearRegression()
+    increase_model.fit(pd.DataFrame(range(1, 6)), pd.DataFrame(param.increase_delta_List))
+    decrease_model.fit(pd.DataFrame(range(1, 6)), pd.DataFrame(param.decrease_delta_List))
+    param.increase_model_output(increase_model.coef_, increase_model.intercept_)
+    param.decrease_model_output(decrease_model.coef_, decrease_model.intercept_)
     # 回帰直線から(i+1)step後に最小値量へ向かっている方向を探す
-    plus_slope = plus_model.coef_ * 6 + plus_model.intercept_
-    minus_slope = minus_model.coef_ * 6 + minus_model.intercept_
+    increase_slope = increase_model.coef_ * 6 + increase_model.intercept_
+    decrease_slope = decrease_model.coef_ * 6 + decrease_model.intercept_
     #debug.set(adpKey, basePoint, param)
-    if plus_slope < minus_slope:
-      param.direction = "plus"
+    """
+    linear_model = LinearRegression()
+    linear_model.fit(pd.DataFrame(range(1,11), pd.DataFrame(param.increase_delta_List + param.decrease_delta_List)))
+    param.linear_model_output(linear_model.coef_)
+    if np.sign(linear_model.coef_) == 1:
+      param.direction = "increase"
       return
-    elif plus_slope > minus_slope:
-      param.direction = "minus"
+    elif np.sign(linear_model.coef_) == -1:
+      param.direction = "decrease"
       return
     else:
       cntwin.erase()
-      cntwin.addstr(15,0,"\t初期探索でエラー", curses.color_pair(1))
+      cntwin.addstr(15,0,"\t回帰直線でエラー", curses.color_pair(1))
       cntwin.refresh()
       time.sleep(10)
       return
@@ -1422,7 +1446,7 @@ def step_LinearRegression(mcu, ch, adpKey, basePoint, cntwin, debug, param, sett
       else:
         param.cv = float(pw)
       param.delta_calc()
-      param.plus_delta_append(param.delta)
+      param.increase_delta_append(param.delta)
       debug.set(adpKey, basePoint, param)
       # -方向にstep調整
       if basePoint.att - i < 0:
@@ -1443,24 +1467,29 @@ def step_LinearRegression(mcu, ch, adpKey, basePoint, cntwin, debug, param, sett
       else:
         param.cv = float(pw)
       param.delta_calc()
-      param.minus_delta_append(param.delta)
+      param.decrease_delta_append(param.delta)
       debug.set(adpKey, basePoint, param)
-    # plusとminus方向それぞれの回帰直線を作成
-    plus_model = LinearRegression()
-    minus_model = LinearRegression()
-    plus_model.fit(pd.DataFrame(range(1, 6)), pd.DataFrame(param.plus_delta_List))
-    minus_model.fit(pd.DataFrame(range(1, 6)), pd.DataFrame(param.minus_delta_List))
-    param.plus_model_output(plus_model.coef_, plus_model.intercept_)
-    param.minus_model_output(minus_model.coef_, minus_model.intercept_)
+    """
+    # increaseとdecrease方向それぞれの回帰直線を作成
+    increase_model = LinearRegression()
+    decrease_model = LinearRegression()
+    increase_model.fit(pd.DataFrame(range(1, 6)), pd.DataFrame(param.increase_delta_List))
+    decrease_model.fit(pd.DataFrame(range(1, 6)), pd.DataFrame(param.decrease_delta_List))
+    param.increase_model_output(increase_model.coef_, increase_model.intercept_)
+    param.decrease_model_output(decrease_model.coef_, decrease_model.intercept_)
     # 回帰直線から(i+1)step後に最小値量へ向かっている方向を探す
-    plus_slope = plus_model.coef_ * 6 + plus_model.intercept_
-    minus_slope = minus_model.coef_ *6 + minus_model.intercept_
+    increase_slope = increase_model.coef_ * 6 + increase_model.intercept_
+    decrease_slope = decrease_model.coef_ *6 + decrease_model.intercept_
     #debug.set(adpKey, basePoint, param)
-    if plus_slope < minus_slope:
-      param.direction = "plus"
+    """
+    linear_model = LinearRegression()
+    linear_model.fit(pd.DataFrame(range(1,11), pd.DataFrame(param.increase_delta_List + param.decrease_delta_List)))
+    param.linear_model_output(linear_model.coef_)
+    if np.sign(linear_model.coef_) == 1:
+      param.direction = "increase"
       return
-    elif plus_slope > minus_slope:
-      param.direction = "minus"
+    elif np.sign(linear_model.coef_) == -1:
+      param.direction = "decrease"
       return
     else:
       cntwin.erase()
@@ -1520,8 +1549,9 @@ class DebugFile:
     self.cv = []
     self.pv = []
     self.delta = []
-    self.plus_model = []
-    self.minus_model = []
+    self.linear_model = []
+    # self.increase_model = []
+    # self.decrease_model = []
   
   def set(self, adpKey, basePoint, param):
     self.step_phase.append(param.step_phase)
@@ -1534,13 +1564,14 @@ class DebugFile:
     self.cv.append(float(param.cv))
     self.pv.append(float(param.pv))
     self.delta.append(float(param.delta))
-    self.plus_model.append(param.plus_model)
-    self.minus_model.append(param.minus_model)
+    self.linear_model.append(param.linear_model)
+    # self.increase_model.append(param.increase_model)
+    # self.decrease_model.append(param.decrease_model)
 
   def output(self):
     t = time.time()
     dt = datetime.datetime.fromtimestamp(t)
-    debug_File = pd.DataFrame([self.step_phase, self.step_att, self.phase, self.att, self.basePoint_phase, self.basePoint_att, self.cv, self.pv, self.delta, self.direction, self.plus_model, self.minus_model], index=['step_phase', 'step_att', 'phase', 'att', 'basePoint.phase', 'basePoint.att', 'cv', 'pv', 'delta', 'direction', 'plus_model', 'minus_model'])
+    debug_File = pd.DataFrame([self.step_phase, self.step_att, self.phase, self.att, self.basePoint_phase, self.basePoint_att, self.cv, self.pv, self.delta, self.direction, self.linear_model], index=['step_phase', 'step_att', 'phase', 'att', 'basePoint.phase', 'basePoint.att', 'current value', 'previous value', 'delta value', 'direction', 'linear_model'])
     # 最小のphase値探索の検証excelを出力
     debug_File.to_excel('stepTrack_Debug'+ str(dt) +'.xlsx')
     
@@ -1552,10 +1583,11 @@ class TrackParam:
     self.step_phase = 0
     self.step_att = 0
     self.delta = 0.0
-    self.plus_model = "None"
-    self.minus_model = "None"
-    self.plus_delta_List = []
-    self.minus_delta_List = []
+    self.linear_model = "None"
+    # self.increase_model = "None"
+    # self.decrease_model = "None"
+    self.increase_delta_List = []
+    self.decrease_delta_List = []
     
   def step_phase_incre(self):
     self.step_phase += 1
@@ -1563,28 +1595,34 @@ class TrackParam:
   def step_att_incre(self):
     self.step_att += 1
     
-  def plus_delta_append(self, plus_delta):
-    self.plus_delta_List.append(plus_delta)
+  def increase_delta_append(self, increase_delta):
+    self.increase_delta_List.append(increase_delta)
     
-  def minus_delta_append(self, minus_delta):
-    self.minus_delta_List.append(minus_delta)
+  def decrease_delta_append(self, decrease_delta):
+    self.decrease_delta_List.append(decrease_delta)
   
   def delta_calc(self):
     self.delta = self.cv - self.pv
   
   def delta_List_init(self):
-    self.plus_delta_List = []
-    self.minus_delta_List = []
+    self.increase_delta_List = []
+    self.decrease_delta_List = []
   
-  def plus_model_output(self, coef, intercept):
-    self.plus_model = str(coef) + "x + (" + str(intercept) + ")"
+  def linear_model_output(self, coef):
+    self.linear_model = str(coef)
+  
+  """
+  def increase_model_output(self, coef, intercept):
+    self.increase_model = str(coef) + "x + (" + str(intercept) + ")"
     
-  def minus_model_output(self, coef, intercept):
-    self.minus_model = str(coef) + "x + (" + str(intercept) + ")"
+  def decrease_model_output(self, coef, intercept):
+    self.decrease_model = str(coef) + "x + (" + str(intercept) + ")"
+  """
   
   def model_init(self):
-    self.plus_model = "None"
-    self.minus_model = "None"
+    self.linear_mode = "None"
+    # self.increase_model = "None"
+    # self.decrease_model = "None"
 
 
 if __name__ == '__main__':
