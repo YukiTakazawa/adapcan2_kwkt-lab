@@ -1408,7 +1408,7 @@ def step_LinearRegression(mcu, ch, adpKey, basePoint, cntwin, debug, param, sett
     #debug.set(adpKey, basePoint, param)
     """
     linear_model = LinearRegression()
-    linear_model.fit(pd.DataFrame(range(1,11), pd.DataFrame(param.increase_delta_List + param.decrease_delta_List)))
+    linear_model.fit(pd.DataFrame(range(1,11), pd.DataFrame(param.increase_delta_List.extend(param.decrease_delta_List))))
     param.linear_model_output(linear_model.coef_)
     if np.sign(linear_model.coef_) == 1:
       param.direction = "increase"
@@ -1483,7 +1483,7 @@ def step_LinearRegression(mcu, ch, adpKey, basePoint, cntwin, debug, param, sett
     #debug.set(adpKey, basePoint, param)
     """
     linear_model = LinearRegression()
-    linear_model.fit(pd.DataFrame(range(1,11), pd.DataFrame(param.increase_delta_List + param.decrease_delta_List)))
+    linear_model.fit(pd.DataFrame(range(1,11), pd.DataFrame(param.increase_delta_List.extend(param.decrease_delta_List))))
     param.linear_model_output(linear_model.coef_)
     if np.sign(linear_model.coef_) == 1:
       param.direction = "increase"
@@ -1539,6 +1539,7 @@ def DebugFile(step_phase, step_att, adpKey, basePoint, cntwin):
     
 class DebugFile:
   def __init__(self):
+    self.total_step = []
     self.step_phase = []
     self.step_att = []
     self.phase = []
@@ -1554,6 +1555,7 @@ class DebugFile:
     # self.decrease_model = []
   
   def set(self, adpKey, basePoint, param):
+    self.total_step.append(param.step_phase + param.step_att)
     self.step_phase.append(param.step_phase)
     self.step_att.append(param.step_att)
     self.direction.append(param.direction)
@@ -1571,7 +1573,7 @@ class DebugFile:
   def output(self):
     t = time.time()
     dt = datetime.datetime.fromtimestamp(t)
-    debug_File = pd.DataFrame([self.step_phase, self.step_att, self.phase, self.att, self.basePoint_phase, self.basePoint_att, self.cv, self.pv, self.delta, self.direction, self.linear_model], index=['step_phase', 'step_att', 'phase', 'att', 'basePoint.phase', 'basePoint.att', 'current value', 'previous value', 'delta value', 'direction', 'linear_model'])
+    debug_File = pd.DataFrame([self.total_step, self.step_phase, self.step_att, self.phase, self.att, self.basePoint_phase, self.basePoint_att, self.cv, self.pv, self.delta, self.direction, self.linear_model], index=['total_step', 'step_phase', 'step_att', 'phase', 'att', 'basePoint.phase', 'basePoint.att', 'current value', 'previous value', 'delta value', 'direction', 'linear_model'])
     # 最小のphase値探索の検証excelを出力
     debug_File.to_excel('stepTrack_Debug'+ str(dt) +'.xlsx')
     
