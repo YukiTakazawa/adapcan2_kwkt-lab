@@ -1408,7 +1408,7 @@ def step_LinearRegression(mcu, ch, adpKey, basePoint, cntwin, debug, param, sett
     #debug.set(adpKey, basePoint, param)
     """
     linear_model = LinearRegression()
-    linear_model.fit(pd.DataFrame(range(1,11), pd.DataFrame(param.increase_delta_List.extend(param.decrease_delta_List))))
+    linear_model.fit(pd.DataFrame(range(1,11)), pd.DataFrame(param.increase_delta_List.extend + param.decrease_delta_List))
     param.linear_model_output(linear_model.coef_)
     if np.sign(linear_model.coef_) == 1:
       param.direction = "increase"
@@ -1483,7 +1483,7 @@ def step_LinearRegression(mcu, ch, adpKey, basePoint, cntwin, debug, param, sett
     #debug.set(adpKey, basePoint, param)
     """
     linear_model = LinearRegression()
-    linear_model.fit(pd.DataFrame(range(1,11), pd.DataFrame(param.increase_delta_List.extend(param.decrease_delta_List))))
+    linear_model.fit(pd.DataFrame(range(1,11)), pd.DataFrame(param.increase_delta_List.extend + param.decrease_delta_List))
     param.linear_model_output(linear_model.coef_)
     if np.sign(linear_model.coef_) == 1:
       param.direction = "increase"
