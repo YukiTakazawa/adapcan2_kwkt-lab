@@ -1371,7 +1371,7 @@ def step_LinearRegression(mcu, ch, adpKey, basePoint, cntwin, debug, param, sett
       else:
         param.cv = float(pw)
       param.delta_calc()
-      param.increase_delta_append(param.delta)
+      param.increase_delta_append()
       debug.set(adpKey, basePoint, param)
       # -方向にstep調整
       param.step_phase_incre()
@@ -1393,7 +1393,7 @@ def step_LinearRegression(mcu, ch, adpKey, basePoint, cntwin, debug, param, sett
       else:
         param.cv = float(pw)
       param.delta_calc()
-      param.decrease_delta_append(param.delta)
+      param.decrease_delta_append()
       debug.set(adpKey, basePoint, param)
     """
     # increaseとdecrease方向それぞれの回帰直線を作成
@@ -1447,7 +1447,7 @@ def step_LinearRegression(mcu, ch, adpKey, basePoint, cntwin, debug, param, sett
       else:
         param.cv = float(pw)
       param.delta_calc()
-      param.increase_delta_append(param.delta)
+      param.increase_delta_append()
       debug.set(adpKey, basePoint, param)
       param.step_phase_incre()
       # -方向にstep調整
@@ -1469,7 +1469,7 @@ def step_LinearRegression(mcu, ch, adpKey, basePoint, cntwin, debug, param, sett
       else:
         param.cv = float(pw)
       param.delta_calc()
-      param.decrease_delta_append(param.delta)
+      param.decrease_delta_append()
       debug.set(adpKey, basePoint, param)
     """
     # increaseとdecrease方向それぞれの回帰直線を作成
@@ -1599,11 +1599,11 @@ class TrackParam:
   def step_att_incre(self):
     self.step_att += 1
     
-  def increase_delta_append(self, increase_delta):
-    self.increase_delta_List.append(increase_delta)
+  def increase_delta_append(self):
+    self.increase_delta_List.append(self.increase_delta)
     
-  def decrease_delta_append(self, decrease_delta):
-    self.decrease_delta_List.append(decrease_delta)
+  def decrease_delta_append(self):
+    self.decrease_delta_List.append(self.decrease_delta)
   
   def delta_calc(self):
     self.delta = self.cv - self.pv
