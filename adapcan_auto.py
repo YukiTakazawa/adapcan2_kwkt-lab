@@ -1600,10 +1600,10 @@ class TrackParam:
     self.step_att += 1
     
   def increase_delta_append(self):
-    self.increase_delta_List.append(self.increase_delta)
+    self.increase_delta_List.append(self.delta)
     
   def decrease_delta_append(self):
-    self.decrease_delta_List.append(self.decrease_delta)
+    self.decrease_delta_List.append(self.delta)
   
   def delta_calc(self):
     self.delta = self.cv - self.pv
