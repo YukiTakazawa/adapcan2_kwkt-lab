@@ -584,7 +584,7 @@ def autoTune_att(mcu, ch, adpKey, cntwin):
 
 def stepTrack(mcu, ch, adpKey, cntwin):
   flag = "None"
-  threshold = -25.0
+  threshold = -22.5
   cntwin.erase()
   cntwin.addstr(9,5, "step track制御を開始")
   cntwin.refresh()
