@@ -583,42 +583,8 @@ def autoTune_att(mcu, ch, adpKey, cntwin):
 
 
 def stepTrack(mcu, ch, adpKey, cntwin):
-  # global basePoint  # DC_powerが最小値となるphaseのシフト量とattenuation値を保持
-  # global step_phase  # basePointからのphaseの調整step数を保持
-  # global step_att  # attの調整step数を保持
-  # global direction
-  
-  # デバッグ用
-  # global phase_List
-  # global att_List
-  # global increase_delta_List
-  # global decrease_delta_List
-  # global step_phase_List
-  # global step_att_List
-  # global cv_List
-  # global pv_List
-  # global basePoint_phase_List
-  # global basePoint_att_List
-  # global phase_iteration_List
-  # global att_iteration_List
-  # global direction_List
-  
-  # basePoint_phase_List = []
-  # basePoint_att_List = []
-  # cv_List = []
-  # pv_List = []
-  # phase_List = []
-  # att_List = []
-  # step_phase_List = []
-  # step_att_List = []
-  # increase_delta_List = []
-  # decrease_delta_List = []
-  # delta_List = []
   flag = "None"
-  # phase_iteration_List = list(range(32))
-  # att_iteration_List = list(range(64))
-  # direction_List = []
-  
+  threshold = 25.0
   cntwin.erase()
   cntwin.addstr(9,5, "step track制御を開始")
   cntwin.refresh()
@@ -631,7 +597,7 @@ def stepTrack(mcu, ch, adpKey, cntwin):
   th.start()
   cntwin.refresh()
   th.join()
-  time.sleep(1)
+  time.sleep(3)
   # Pointの基準点basePointをphase, attをともに0で初期化
   basePoint = adapcanKeys(0, 0)
   debug = DebugFile()
@@ -641,146 +607,24 @@ def stepTrack(mcu, ch, adpKey, cntwin):
   if AVERAGING == "True":
     param.pv = float(pwa)
   else:
-    param.pv = float(pw)  
-  
-  
-  """
-  direction = {}
-  direction = directionSearch(mcu, ch, adpKey, cntwin)
-  direction = LinearRegression(mcu, ch, adpKey, cntwin)
-  if direction[0] == "None":
-    # もしNoneなら最小値の更新がなかったため，attの調整だけしてstepTrackを終了する
-    pass
-  elif direction[0] == "increase":
-    while True:
-      if basePoint.phase + 130*(direction[1]+1) > 4095:
-        adpKey.phase = 0
-      else :
-        adpKey.phase = min(4095, basePoint.phase+130*(direction(1)+1))
-      th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
-      th.start()
-      th.join()
-      time.sleep(1)
-      if AVERAGING == "True":
-        cv = pwa
-        phase_dcpower_List.append(cv)
-      else:
-        cv = pw
-        phase_dcpower_List.append(cv)
-      if cv-pv >= 0:
-        # cvが最小値ではないため，1step戻して最小値の設定にする
-        adpKey.phase -= 1
-        break
-      # pvを更新
-      pv = cv
-  elif direction[0] == "decrease":
+    param.pv = float(pw)
     
-  else:
-    cntwin.erase()
-    cntwin.addstr(10,0,"\tphaseの前後値差分の比較にエラーが発生しています", curses.color_pair(1))
-    cntwin.refresh()
-    time.sleep(10)
-  cntwin.erase()
-  cntwin.addstr(9,5,"\tstep track制御を終了")
-  """
-  
-  
-  """
-  # 初期探索として，step制御をincrease or decreaseのどちらで制御するか決定する
-def directionSearch(mcu, ch, adpKey, cntwin):
-  for step in range(15):
-    # +方向にstep調整
-    if basePoint.phase + 130*(step+1) > 4095:
-      adpKey.phase = 0
-    else :
-      adpKey.phase = min(4095, basePoint.phase+130*(step+1))
-    th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
-    th.start()
-    th.join()
-    time.sleep(1)
-    if AVERAGING == "True":
-      cv = pwa
-      phase_dcpower_List.append(cv)
-    else:
-      cv = pw
-      phase_dcpower_List.append(cv)
-    increase_delta = cv-pv
-    # -方向にstep調整
-    if basePoint.phase - 130*(step+1) < 0:
-      adpKey.phase = 4095
-    else :
-      adpKey.phase = max(0, basePoint.phase-130*(step+1))
-    th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
-    th.start()
-    th.join()
-    time.sleep(1)
-    if AVERAGING == "True":
-      cv = pwa
-      phase_dcpower_List.append(cv)
-    else:
-      cv = pw
-      phase_dcpower_List.append(cv)
-    decrease_delta = cv - pv
-    # 前step差分と後step差分のどちらかが－符号のときのみ比較する
-    if np.sign(increase_delta)==-1 or np.sign(decrease_delta)==-1:
-      if increase_delta < decrease_delta:
-        pv = phase_dcpower_List[len(phase_dcpower_List-2)]
-        return "increase", step+1
-      elif increase_delta > decrease_delta:
-        pv = phase_dcpower_List[len(phase_dcpower_List-1)]
-        return "decrease", step+1
-      else:
-        return
-  return "None"
-  """
-  
-  # phase調整
-  step_LinearRegression(mcu, ch, adpKey, basePoint, cntwin, debug, param, "phase")
-  if param.direction == "increase":
-    index = len(param.increase_delta_List)
-    increase_delta_List = param.increase_delta_List[index-5:index]
-    if np.sign(min(increase_delta_List)) == -1:  # 最小値がマイナスの符号なら最小値の更新があったと考えられる
-      # リスト内の最小値のインデックスから，phase = 0からのシフト量を求めてbasePointを更新する
-      if basePoint.phase + 130*(increase_delta_List.index(min(increase_delta_List))+1) > 4095:
-        basePoint.phase = basePoint.phase + 130*(increase_delta_List.index(min(increase_delta_List))+1) - 4095
-        param.step_phase = math.floor(basePoint.phase / 130)
-        adpKey.phase = basePoint.phase
-      else :
-        basePoint.phase = min(4095, basePoint.phase + 130*(increase_delta_List.index(min(increase_delta_List))+1))
-        param.step_phase = increase_delta_List.index(min(increase_delta_List))+1
-        adpKey.phase = basePoint.phase
-      cntwin.erase()
-      cntwin.addstr(9,5, "step track制御を開始")
-      cntwin.addstr(10,5, "phaseの初期探索を終了")
-      cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d" %((adpKey.att/2), adpKey.phase, param.step_phase))
-      cntwin.refresh()
-      th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
-      th.start()
-      th.join()
-      time.sleep(1)
-      param.pv = min(increase_delta_List)
-      param.cv = param.pv
-      param.delta_calc()
-      debug.set(adpKey, basePoint, param)
-      flag = "True"
-      """
-      # DC powerの最小値を更新(base)
-      if AVERAGING == "True":
-        pv = pwa
-        phase_dcpower_List.append(pv)
-      else:
-        pv = pw
-        phase_dcpower_List.append(pv)
-      """
-    elif np.sign(min(increase_delta_List)) == 1:  # 最小値がプラスの符号なら最小値の更新がなかったため，探索を続ける
-      for i in range(11):
-      #while True:
-        if adpKey.phase + 130 > 4095:
-          param.step_phase = 0
-          adpKey.phase = 0
+  while True:
+    # phase調整
+    step_LinearRegression(mcu, ch, adpKey, basePoint, cntwin, debug, param, "phase")
+    if param.direction == "increase":
+      index = len(param.increase_delta_List)
+      increase_delta_List = param.increase_delta_List[index-5:index]
+      if np.sign(min(increase_delta_List)) == -1:  # 最小値がマイナスの符号なら最小値の更新があったと考えられる
+        # リスト内の最小値のインデックスから，phase = 0からのシフト量を求めてbasePointを更新する
+        if basePoint.phase + 130*(increase_delta_List.index(min(increase_delta_List))+1) > 4095:
+          basePoint.phase = basePoint.phase + 130*(increase_delta_List.index(min(increase_delta_List))+1) - 4095
+          param.step_phase = math.floor(basePoint.phase / 130)
+          adpKey.phase = basePoint.phase
         else :
-          param.step_phase += 1
-          adpKey.phase = min(4095, adpKey.phase + 130)
+          basePoint.phase = min(4095, basePoint.phase + 130*(increase_delta_List.index(min(increase_delta_List))+1))
+          param.step_phase = increase_delta_List.index(min(increase_delta_List))+1
+          adpKey.phase = basePoint.phase
         cntwin.erase()
         cntwin.addstr(9,5, "step track制御を開始")
         cntwin.addstr(10,5, "phaseの初期探索を終了")
@@ -790,182 +634,29 @@ def directionSearch(mcu, ch, adpKey, cntwin):
         th.start()
         th.join()
         time.sleep(1)
-        if AVERAGING == "True":
-          param.cv = float(pwa)
-        else:
-          param.cv = float(pw)
+        param.pv = min(increase_delta_List)
+        param.cv = param.pv
         param.delta_calc()
         debug.set(adpKey, basePoint, param)
-        if param.cv < param.pv :
-          param.pv = param.cv
-          basePoint.phase = adpKey.phase
-          flag = "True"
-          param.delta_calc()
-          debug.set(adpKey, basePoint, param)
-          break
-    else:
-      cntwin.erase()
-      cntwin.addstr(15,0,"\tincrease_delta_Listの最小値の符号が取得できません", curses.color_pair(1))
-      cntwin.refresh()
-      time.sleep(10)
-      return
-      
-    
-    # さらに最小値が続くかの探索ループ(極小値探索)
-    if flag == "True":
-      flag = "False"
-      while True:
-        if adpKey.phase + 130 > 4095:
-          param.step_phase = 0
-          adpKey.phase = 0
-        else :
-          param.step_phase += 1
-          adpKey.phase = min(4095, adpKey.phase + 130)
-        cntwin.erase()
-        cntwin.addstr(9,5, "step track制御を開始")
-        cntwin.addstr(10,5, "phaseの初期探索を終了")
-        cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d" %((adpKey.att/2), adpKey.phase, param.step_phase))
-        cntwin.refresh()
-        th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
-        th.start()
-        th.join()
-        time.sleep(1)
+        flag = "True"
+        """
+        # DC powerの最小値を更新(base)
         if AVERAGING == "True":
-          param.cv = float(pwa)
+          pv = pwa
+          phase_dcpower_List.append(pv)
         else:
-          param.cv = float(pw)
-        param.delta_calc()
-        debug.set(adpKey, basePoint, param)
-        if param.cv < param.pv :
-          param.pv = param.cv
-          basePoint.phase = adpKey.phase
-        elif param.cv >= param.pv :
-          if adpKey.phase - 130 < 0:
-            param.step_phase = 0
-            adpKey.phase = 4095
-          else :
-            param.step_phase -= 1
-            adpKey.phase = max(0,adpKey.phase-130)
-          cntwin.erase()
-          cntwin.addstr(9,5, "step track制御を開始")
-          cntwin.addstr(10,5, "phaseの初期探索を終了")
-          cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d" %((adpKey.att/2), adpKey.phase, param.step_phase))
-          cntwin.refresh()
-          th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
-          th.start()
-          th.join()
-          time.sleep(1)
-          param.delta_calc()
-          debug.set(adpKey, basePoint, param)
-          break
-
-  elif param.direction == "decrease":  # 同様に
-    index = len(param.decrease_delta_List)
-    decrease_delta_List = param.decrease_delta_List[index-5:index]
-    if np.sign(min(decrease_delta_List)) == -1:  # 最小値がマイナスの符号なら最小値の更新があったと考えられる
-      # リスト内の最小値のインデックスから，phase = 0からのシフト量を求めてbasePointを更新する
-      if basePoint.phase - 130*(decrease_delta_List.index(min(decrease_delta_List))+1) < 0:
-        basePoint.phase = 4095 - 130*(decrease_delta_List.index(min(decrease_delta_List))+1)
-        adpKey.phase = basePoint.phase
-      else :
-        basePoint.phase = max(0, basePoint.phase - 130*(decrease_delta_List.index(min(decrease_delta_List))+1))
-        adpKey.phase = basePoint.phase
-      cntwin.erase()
-      cntwin.addstr(9,5, "step track制御を開始")
-      cntwin.addstr(10,5, "phaseの初期探索を終了")
-      cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d" %((adpKey.att/2), adpKey.phase, param.step_phase))
-      cntwin.refresh()
-      th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
-      th.start()
-      th.join()
-      time.sleep(1)
-      param.pv = min(decrease_delta_List)
-      param.cv = param.pv
-      param.delta_calc()
-      debug.set(adpKey, basePoint, param)
-      flag = "True"
-      """
-      # DC powerの最小値を更新(base)
-      if AVERAGING == "True":
-        pv = pwa
-        phase_dcpower_List.append(pv)
-      else:
-        pv = pw
-        phase_dcpower_List.append(pv)
-      """
-    elif np.sign(min(decrease_delta_List)) == 1:  # 最小値がプラスの符号なら最小値の更新がなかったため，探索を続ける
-      for i in range(11):
-      #while True:
-        if adpKey.phase - 130 < 0:
-          param.step_phase = 0
-          adpKey.phase = 4095
-        else :
-          param.step_phase += 1
-          adpKey.phase = max(0, adpKey.phase - 130)
-        cntwin.erase()
-        cntwin.addstr(9,5, "step track制御を開始")
-        cntwin.addstr(10,5, "phaseの初期探索を終了")
-        cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d" %((adpKey.att/2), adpKey.phase, param.step_phase))
-        cntwin.refresh()
-        th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
-        th.start()
-        th.join()
-        time.sleep(1)
-        if AVERAGING == "True":
-          param.cv = float(pwa)
-        else:
-          param.cv = float(pw)
-        if param.cv < param.pv :
-          param.pv = param.cv
-          basePoint.phase = adpKey.phase
-          param.delta_calc()
-          debug.set(adpKey, basePoint, param)
-          flag = "True"
-          break
-        param.delta_calc()
-        debug.set(adpKey, basePoint, param)
-    else:
-      cntwin.erase()
-      cntwin.addstr(15,0,"\tincrease_delta_Listの最小値の符号が取得できません", curses.color_pair(1))
-      cntwin.refresh()
-      time.sleep(10)
-      return
-      
-    if flag == "True":
-      flag = "False"
-    # さらに最小値が続くかの探索ループ
-      while True:
-        if adpKey.phase - 130 < 0:
-          param.step_phase = 0
-          adpKey.phase = 4095
-        else :
-          param.step_phase += 1
-          adpKey.phase = max(0, adpKey.phase - 130)
-        cntwin.erase()
-        cntwin.addstr(9,5, "step track制御を開始")
-        cntwin.addstr(10,5, "phaseの初期探索を終了")
-        cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d" %((adpKey.att/2), adpKey.phase, param.step_phase))
-        cntwin.refresh()
-        th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
-        th.start()
-        th.join()
-        time.sleep(1)
-        if AVERAGING == "True":
-          param.cv = float(pwa)
-        else:
-          param.cv = float(pw)
-        if param.cv < param.pv :
-          param.pv = param.cv
-          basePoint.phase = adpKey.phase
-          param.delta_calc()
-          debug.set(adpKey, basePoint, param)
-        elif param.cv >= param.pv :
+          pv = pw
+          phase_dcpower_List.append(pv)
+        """
+      elif np.sign(min(increase_delta_List)) == 1:  # 最小値がプラスの符号なら最小値の更新がなかったため，探索を続ける
+        for i in range(11):
+        #while True:
           if adpKey.phase + 130 > 4095:
             param.step_phase = 0
             adpKey.phase = 0
           else :
-            param.step_phase -= 1
-            adpKey.phase = max(0,adpKey.phase-130)
+            param.step_phase += 1
+            adpKey.phase = min(4095, adpKey.phase + 130)
           cntwin.erase()
           cntwin.addstr(9,5, "step track制御を開始")
           cntwin.addstr(10,5, "phaseの初期探索を終了")
@@ -975,286 +666,470 @@ def directionSearch(mcu, ch, adpKey, cntwin):
           th.start()
           th.join()
           time.sleep(1)
+          if AVERAGING == "True":
+            param.cv = float(pwa)
+          else:
+            param.cv = float(pw)
           param.delta_calc()
           debug.set(adpKey, basePoint, param)
-          break
-        
-  else:
-    cntwin.erase()
-    cntwin.addstr(15,0,"\tphaseの前後値差分の比較にエラーが発生しています", curses.color_pair(1))
-    cntwin.refresh()
-    time.sleep(10)
-    return
-  
-  
-  
-  # att調整
-  step_LinearRegression(mcu, ch, adpKey, basePoint, cntwin, debug, param, "att")
-  if param.direction == "increase":
-    index = len(param.increase_delta_List)
-    increase_delta_List = param.increase_delta_List[index-5:index]
-    if np.sign(min(param.increase_delta_List)) == -1:  # 最小値がマイナスの符号なら最小値の更新があったと考えられる
-      # リスト内の最小値のインデックスから，att = 0からのシフト量を求めてbasePointを更新する
-      if basePoint.att + (param.increase_delta_List.index(min(param.increase_delta_List))+1) > 62:
-        basePoint.att = basePoint.att + (param.increase_delta_List.index(min(param.increase_delta_List))+1) - 62
-        param.step_att = basePoint.att
-        adpKey.att = basePoint.att
-      else :
-        basePoint.att = min(63, basePoint.att + (param.increase_delta_List.index(min(param.increase_delta_List))+1))
-        param.step_att = param.increase_delta_List.index(min(param.increase_delta_List))+1
-        adpKey.att = basePoint.att
-      cntwin.erase()
-      cntwin.addstr(9,5, "step track制御を開始")
-      cntwin.addstr(10,5, "attの初期探索を終了")
-      cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d" %((adpKey.att/2), adpKey.phase, param.step_att))
-      cntwin.refresh()
-      th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
-      th.start()
-      th.join()
-      time.sleep(1)
-      param.pv = min(increase_delta_List)
-      param.cv = param.pv
-      param.delta_calc()
-      debug.set(adpKey, basePoint, param)
-      flag = "True"
-      """
-      # DC powerの最小値を更新(base)
-      if AVERAGING == "True":
-        pv = pwa
-        phase_dcpower_List.append(pv)
+          if param.cv < param.pv :
+            param.pv = param.cv
+            basePoint.phase = adpKey.phase
+            flag = "True"
+            param.delta_calc()
+            debug.set(adpKey, basePoint, param)
+            break
       else:
-        pv = pw
-        phase_dcpower_List.append(pv)
-      """
-    elif np.sign(min(param.increase_delta_List)) == 1:  # 最小値がプラスの符号なら最小値の更新がなかったため，探索を続ける
-      for i in range(11):
-      #while True:
-        if adpKey.att + 1 > 62:
-          param.step_att = 0
-          adpKey.att = 0
-        else :
-          param.step_att += 1
-          adpKey.att = min(63, adpKey.att + 1)
         cntwin.erase()
-        cntwin.addstr(9,5, "step track制御を開始")
-        cntwin.addstr(10,5, "attの初期探索を終了")
-        cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d" %((adpKey.att/2), adpKey.phase, param.step_att))
+        cntwin.addstr(15,0,"\tincrease_delta_Listの最小値の符号が取得できません", curses.color_pair(1))
         cntwin.refresh()
-        th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
-        th.start()
-        th.join()
-        time.sleep(1)
-        if AVERAGING == "True":
-          param.cv = float(pwa)
-        else:
-          param.cv = float(pw)
-        if param.cv < param.pv :
-          param.pv = param.cv
-          basePoint.att = adpKey.att
-          param.delta_calc()
-          debug.set(adpKey, basePoint, param)
-          flag = "True"
-          break
-        param.delta_calc()
-        debug.set(adpKey, basePoint, param)
-    else:
-      cntwin.erase()
-      cntwin.addstr(15,0,"\tincrease_delta_Listの最小値の符号が取得できません", curses.color_pair(1))
-      cntwin.refresh()
-      time.sleep(10)
-      return
+        time.sleep(10)
+        return
+        
       
-    
-    # さらに最小値が続くかの探索ループ(極小値探索)
-    if flag == "True":
-      flag = "False"
-      while True:
-        if adpKey.att + 1 > 62:
-          param.step_att = 0
-          adpKey.att = 0
-        else :
-          param.step_att += 1
-          adpKey.att = min(63, adpKey.att + 1)
-        cntwin.erase()
-        cntwin.addstr(9,5, "step track制御を開始")
-        cntwin.addstr(10,5, "attの初期探索を終了")
-        cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d" %((adpKey.att/2), adpKey.phase, param.step_att))
-        cntwin.refresh()
-        th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
-        th.start()
-        th.join()
-        time.sleep(1)
-        if AVERAGING == "True":
-          param.cv = float(pwa)
-        else:
-          param.cv = float(pw)
-        if param.cv < param.pv :
-          param.pv = param.cv
-          basePoint.att = adpKey.att
-          param.delta_calc()
-          debug.set(adpKey, basePoint, param)
-        elif param.cv >= param.pv :
-          if adpKey.att - 1 < 0:
-            param.step_att = 0
-            adpKey.att = 63
+      # さらに最小値が続くかの探索ループ(極小値探索)
+      if flag == "True":
+        flag = "False"
+        while True:
+          if adpKey.phase + 130 > 4095:
+            param.step_phase = 0
+            adpKey.phase = 0
           else :
-            param.step_att -= 1
-            adpKey.phase = max(0,adpKey.att-1)
+            param.step_phase += 1
+            adpKey.phase = min(4095, adpKey.phase + 130)
           cntwin.erase()
           cntwin.addstr(9,5, "step track制御を開始")
-          cntwin.addstr(10,5, "attの初期探索を終了")
-          cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d" %((adpKey.att/2), adpKey.phase, param.step_att))
+          cntwin.addstr(10,5, "phaseの初期探索を終了")
+          cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d" %((adpKey.att/2), adpKey.phase, param.step_phase))
           cntwin.refresh()
           th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
           th.start()
           th.join()
           time.sleep(1)
+          if AVERAGING == "True":
+            param.cv = float(pwa)
+          else:
+            param.cv = float(pw)
           param.delta_calc()
           debug.set(adpKey, basePoint, param)
-          break
-
-  elif param.direction == "decrease":  # 同様に
-    index = len(param.decrease_delta_List)
-    decrease_delta_List = param.decrease_delta_List[index-5:index]
-    if np.sign(min(decrease_delta_List)) == -1:  # 最小値がマイナスの符号なら最小値の更新があったと考えられる
-      # リスト内の最小値のインデックスから，att = 0からのシフト量を求めてbasePointを更新する
-      if basePoint.att - (decrease_delta_List.index(min(decrease_delta_List))+1) < 0:
-        basePoint.att = 63 - (decrease_delta_List.index(min(decrease_delta_List))+1)
-        adpKey.att = basePoint.att
-      else :
-        basePoint.att = max(0, basePoint.att - (decrease_delta_List.index(min(decrease_delta_List))+1))
-        adpKey.att = basePoint.att
-      cntwin.erase()
-      cntwin.addstr(9,5, "step track制御を開始")
-      cntwin.addstr(10,5, "attの初期探索を終了")
-      cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d" %((adpKey.att/2), adpKey.phase, param.step_att))
-      cntwin.refresh()
-      th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
-      th.start()
-      th.join()
-      time.sleep(1)
-      param.pv = min(decrease_delta_List)
-      param.cv = param.pv
-      param.delta_calc()
-      debug.set(adpKey, basePoint, param)
-      flag = "True"
-      """
-      # DC powerの最小値を更新(base)
-      if AVERAGING == "True":
-        pv = pwa
-        phase_dcpower_List.append(pv)
-      else:
-        pv = pw
-        phase_dcpower_List.append(pv)
-      """
-    elif np.sign(min(decrease_delta_List)) == 1:  # 最小値がプラスの符号なら最小値の更新がなかったため，探索を続ける
-      for i in range(11):
-      #while True:
-        if adpKey.att - 1 < 0:
-          param.step_att = 0
-          adpKey.att = 63
+          if param.cv < param.pv :
+            param.pv = param.cv
+            basePoint.phase = adpKey.phase
+          elif param.cv >= param.pv :
+            if adpKey.phase - 130 < 0:
+              param.step_phase = 0
+              adpKey.phase = 4095
+            else :
+              param.step_phase -= 1
+              adpKey.phase = max(0,adpKey.phase-130)
+            cntwin.erase()
+            cntwin.addstr(9,5, "step track制御を開始")
+            cntwin.addstr(10,5, "phaseの初期探索を終了")
+            cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d" %((adpKey.att/2), adpKey.phase, param.step_phase))
+            cntwin.refresh()
+            th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
+            th.start()
+            th.join()
+            time.sleep(1)
+            param.delta_calc()
+            debug.set(adpKey, basePoint, param)
+            break
+          
+    elif param.direction == "decrease":  # 同様に
+      index = len(param.decrease_delta_List)
+      decrease_delta_List = param.decrease_delta_List[index-5:index]
+      if np.sign(min(decrease_delta_List)) == -1:  # 最小値がマイナスの符号なら最小値の更新があったと考えられる
+        # リスト内の最小値のインデックスから，phase = 0からのシフト量を求めてbasePointを更新する
+        if basePoint.phase - 130*(decrease_delta_List.index(min(decrease_delta_List))+1) < 0:
+          basePoint.phase = 4095 - 130*(decrease_delta_List.index(min(decrease_delta_List))+1)
+          adpKey.phase = basePoint.phase
         else :
-          param.step_att += 1
-          adpKey.att = max(0, adpKey.att - 1)
+          basePoint.phase = max(0, basePoint.phase - 130*(decrease_delta_List.index(min(decrease_delta_List))+1))
+          adpKey.phase = basePoint.phase
         cntwin.erase()
         cntwin.addstr(9,5, "step track制御を開始")
-        cntwin.addstr(10,5, "attの初期探索を終了")
-        cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d" %((adpKey.att/2), adpKey.phase, param.step_att))
+        cntwin.addstr(10,5, "phaseの初期探索を終了")
+        cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d" %((adpKey.att/2), adpKey.phase, param.step_phase))
         cntwin.refresh()
         th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
         th.start()
         th.join()
         time.sleep(1)
-        if AVERAGING == "True":
-          param.cv = float(pwa)
-        else:
-          param.cv = float(pw)
-        if param.cv < param.pv :
-          param.pv = param.cv
-          basePoint.att = adpKey.att
-          param.delta_calc()
-          debug.set(adpKey, basePoint, param)
-          flag = "True"
-          break
+        param.pv = min(decrease_delta_List)
+        param.cv = param.pv
         param.delta_calc()
         debug.set(adpKey, basePoint, param)
+        flag = "True"
+        """
+        # DC powerの最小値を更新(base)
+        if AVERAGING == "True":
+          pv = pwa
+          phase_dcpower_List.append(pv)
+        else:
+          pv = pw
+          phase_dcpower_List.append(pv)
+        """
+      elif np.sign(min(decrease_delta_List)) == 1:  # 最小値がプラスの符号なら最小値の更新がなかったため，探索を続ける
+        for i in range(11):
+        #while True:
+          if adpKey.phase - 130 < 0:
+            param.step_phase = 0
+            adpKey.phase = 4095
+          else :
+            param.step_phase += 1
+            adpKey.phase = max(0, adpKey.phase - 130)
+          cntwin.erase()
+          cntwin.addstr(9,5, "step track制御を開始")
+          cntwin.addstr(10,5, "phaseの初期探索を終了")
+          cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d" %((adpKey.att/2), adpKey.phase, param.step_phase))
+          cntwin.refresh()
+          th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
+          th.start()
+          th.join()
+          time.sleep(1)
+          if AVERAGING == "True":
+            param.cv = float(pwa)
+          else:
+            param.cv = float(pw)
+          if param.cv < param.pv :
+            param.pv = param.cv
+            basePoint.phase = adpKey.phase
+            param.delta_calc()
+            debug.set(adpKey, basePoint, param)
+            flag = "True"
+            break
+          param.delta_calc()
+          debug.set(adpKey, basePoint, param)
+      else:
+        cntwin.erase()
+        cntwin.addstr(15,0,"\tincrease_delta_Listの最小値の符号が取得できません", curses.color_pair(1))
+        cntwin.refresh()
+        time.sleep(10)
+        return
+        
+      if flag == "True":
+        flag = "False"
+      # さらに最小値が続くかの探索ループ
+        while True:
+          if adpKey.phase - 130 < 0:
+            param.step_phase = 0
+            adpKey.phase = 4095
+          else :
+            param.step_phase += 1
+            adpKey.phase = max(0, adpKey.phase - 130)
+          cntwin.erase()
+          cntwin.addstr(9,5, "step track制御を開始")
+          cntwin.addstr(10,5, "phaseの初期探索を終了")
+          cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d" %((adpKey.att/2), adpKey.phase, param.step_phase))
+          cntwin.refresh()
+          th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
+          th.start()
+          th.join()
+          time.sleep(1)
+          if AVERAGING == "True":
+            param.cv = float(pwa)
+          else:
+            param.cv = float(pw)
+          if param.cv < param.pv :
+            param.pv = param.cv
+            basePoint.phase = adpKey.phase
+            param.delta_calc()
+            debug.set(adpKey, basePoint, param)
+          elif param.cv >= param.pv :
+            if adpKey.phase + 130 > 4095:
+              param.step_phase = 0
+              adpKey.phase = 0
+            else :
+              param.step_phase -= 1
+              adpKey.phase = max(0,adpKey.phase-130)
+            cntwin.erase()
+            cntwin.addstr(9,5, "step track制御を開始")
+            cntwin.addstr(10,5, "phaseの初期探索を終了")
+            cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d" %((adpKey.att/2), adpKey.phase, param.step_phase))
+            cntwin.refresh()
+            th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
+            th.start()
+            th.join()
+            time.sleep(1)
+            param.delta_calc()
+            debug.set(adpKey, basePoint, param)
+            break
+          
     else:
       cntwin.erase()
-      cntwin.addstr(15,0,"\tincrease_delta_Listの最小値の符号が取得できません", curses.color_pair(1))
+      cntwin.addstr(15,0,"\tphaseの前後値差分の比較にエラーが発生しています", curses.color_pair(1))
       cntwin.refresh()
       time.sleep(10)
       return
-      
-    if flag == "True":
-      flag = "False"
-    # さらに最小値が続くかの探索ループ
-      while True:
-        if adpKey.att - 1 < 0:
-          param.step_att = 0
-          adpKey.att = 63
+    
+    
+    
+    # att調整
+    step_LinearRegression(mcu, ch, adpKey, basePoint, cntwin, debug, param, "att")
+    if param.direction == "increase":
+      index = len(param.increase_delta_List)
+      increase_delta_List = param.increase_delta_List[index-5:index]
+      if np.sign(min(param.increase_delta_List)) == -1:  # 最小値がマイナスの符号なら最小値の更新があったと考えられる
+        # リスト内の最小値のインデックスから，att = 0からのシフト量を求めてbasePointを更新する
+        if basePoint.att + (param.increase_delta_List.index(min(param.increase_delta_List))+1) > 62:
+          basePoint.att = basePoint.att + (param.increase_delta_List.index(min(param.increase_delta_List))+1) - 62
+          param.step_att = basePoint.att
+          adpKey.att = basePoint.att
         else :
-          param.step_att += 1
-          adpKey.att = max(0, adpKey.att - 1)
+          basePoint.att = min(63, basePoint.att + (param.increase_delta_List.index(min(param.increase_delta_List))+1))
+          param.step_att = param.increase_delta_List.index(min(param.increase_delta_List))+1
+          adpKey.att = basePoint.att
         cntwin.erase()
         cntwin.addstr(9,5, "step track制御を開始")
         cntwin.addstr(10,5, "attの初期探索を終了")
-        cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d" %((adpKey.att/2), adpKey.phase, param.step_att))
+        cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_att: %d" %((adpKey.att/2), adpKey.phase, param.step_att))
         cntwin.refresh()
         th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
         th.start()
         th.join()
         time.sleep(1)
+        param.pv = min(increase_delta_List)
+        param.cv = param.pv
+        param.delta_calc()
+        debug.set(adpKey, basePoint, param)
+        flag = "True"
+        """
+        # DC powerの最小値を更新(base)
         if AVERAGING == "True":
-          param.cv = float(pwa)
+          pv = pwa
+          phase_dcpower_List.append(pv)
         else:
-          param.cv = float(pw)
-        if param.cv < param.pv :
-          param.pv = param.cv
-          basePoint.att = adpKey.att
-          param.delta_calc()
-          debug.set(adpKey, basePoint, param)
-        elif param.cv >= param.pv :
+          pv = pw
+          phase_dcpower_List.append(pv)
+        """
+      elif np.sign(min(param.increase_delta_List)) == 1:  # 最小値がプラスの符号なら最小値の更新がなかったため，探索を続ける
+        for i in range(11):
+        #while True:
           if adpKey.att + 1 > 62:
             param.step_att = 0
             adpKey.att = 0
           else :
-            param.step_att -= 1
-            adpKey.att = max(0,adpKey.att-1)
+            param.step_att += 1
+            adpKey.att = min(63, adpKey.att + 1)
           cntwin.erase()
           cntwin.addstr(9,5, "step track制御を開始")
           cntwin.addstr(10,5, "attの初期探索を終了")
-          cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d" %((adpKey.att/2), adpKey.phase, param.step_att))
+          cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_att: %d" %((adpKey.att/2), adpKey.phase, param.step_att))
           cntwin.refresh()
           th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
           th.start()
           th.join()
           time.sleep(1)
+          if AVERAGING == "True":
+            param.cv = float(pwa)
+          else:
+            param.cv = float(pw)
+          if param.cv < param.pv :
+            param.pv = param.cv
+            basePoint.att = adpKey.att
+            param.delta_calc()
+            debug.set(adpKey, basePoint, param)
+            flag = "True"
+            break
           param.delta_calc()
           debug.set(adpKey, basePoint, param)
-          break
+      else:
+        cntwin.erase()
+        cntwin.addstr(15,0,"\tincrease_delta_Listの最小値の符号が取得できません", curses.color_pair(1))
+        cntwin.refresh()
+        time.sleep(10)
+        return
         
-  else:
-    cntwin.erase()
-    cntwin.addstr(15,0,"\tphaseの前後値差分の比較にエラーが発生しています", curses.color_pair(1))
-    cntwin.refresh()
-    time.sleep(10)
-    return
+      
+      # さらに最小値が続くかの探索ループ(極小値探索)
+      if flag == "True":
+        flag = "False"
+        while True:
+          if adpKey.att + 1 > 62:
+            param.step_att = 0
+            adpKey.att = 0
+          else :
+            param.step_att += 1
+            adpKey.att = min(63, adpKey.att + 1)
+          cntwin.erase()
+          cntwin.addstr(9,5, "step track制御を開始")
+          cntwin.addstr(10,5, "attの初期探索を終了")
+          cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_att: %d" %((adpKey.att/2), adpKey.phase, param.step_att))
+          cntwin.refresh()
+          th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
+          th.start()
+          th.join()
+          time.sleep(1)
+          if AVERAGING == "True":
+            param.cv = float(pwa)
+          else:
+            param.cv = float(pw)
+          if param.cv < param.pv :
+            param.pv = param.cv
+            basePoint.att = adpKey.att
+            param.delta_calc()
+            debug.set(adpKey, basePoint, param)
+          elif param.cv >= param.pv :
+            if adpKey.att - 1 < 0:
+              param.step_att = 0
+              adpKey.att = 63
+            else :
+              param.step_att -= 1
+              adpKey.phase = max(0,adpKey.att-1)
+            cntwin.erase()
+            cntwin.addstr(9,5, "step track制御を開始")
+            cntwin.addstr(10,5, "attの初期探索を終了")
+            cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_att: %d" %((adpKey.att/2), adpKey.phase, param.step_att))
+            cntwin.refresh()
+            th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
+            th.start()
+            th.join()
+            time.sleep(1)
+            param.delta_calc()
+            debug.set(adpKey, basePoint, param)
+            break
+    elif param.direction == "decrease":  # 同様に
+      index = len(param.decrease_delta_List)
+      decrease_delta_List = param.decrease_delta_List[index-5:index]
+      if np.sign(min(decrease_delta_List)) == -1:  # 最小値がマイナスの符号なら最小値の更新があったと考えられる
+        # リスト内の最小値のインデックスから，att = 0からのシフト量を求めてbasePointを更新する
+        if basePoint.att - (decrease_delta_List.index(min(decrease_delta_List))+1) < 0:
+          basePoint.att = 63 - (decrease_delta_List.index(min(decrease_delta_List))+1)
+          adpKey.att = basePoint.att
+        else :
+          basePoint.att = max(0, basePoint.att - (decrease_delta_List.index(min(decrease_delta_List))+1))
+          adpKey.att = basePoint.att
+        cntwin.erase()
+        cntwin.addstr(9,5, "step track制御を開始")
+        cntwin.addstr(10,5, "attの初期探索を終了")
+        cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_att: %d" %((adpKey.att/2), adpKey.phase, param.step_att))
+        cntwin.refresh()
+        th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
+        th.start()
+        th.join()
+        time.sleep(1)
+        param.pv = min(decrease_delta_List)
+        param.cv = param.pv
+        param.delta_calc()
+        debug.set(adpKey, basePoint, param)
+        flag = "True"
+        """
+        # DC powerの最小値を更新(base)
+        if AVERAGING == "True":
+          pv = pwa
+          phase_dcpower_List.append(pv)
+        else:
+          pv = pw
+          phase_dcpower_List.append(pv)
+        """
+      elif np.sign(min(decrease_delta_List)) == 1:  # 最小値がプラスの符号なら最小値の更新がなかったため，探索を続ける
+        for i in range(11):
+        #while True:
+          if adpKey.att - 1 < 0:
+            param.step_att = 0
+            adpKey.att = 63
+          else :
+            param.step_att += 1
+            adpKey.att = max(0, adpKey.att - 1)
+          cntwin.erase()
+          cntwin.addstr(9,5, "step track制御を開始")
+          cntwin.addstr(10,5, "attの初期探索を終了")
+          cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_att: %d" %((adpKey.att/2), adpKey.phase, param.step_att))
+          cntwin.refresh()
+          th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
+          th.start()
+          th.join()
+          time.sleep(1)
+          if AVERAGING == "True":
+            param.cv = float(pwa)
+          else:
+            param.cv = float(pw)
+          if param.cv < param.pv :
+            param.pv = param.cv
+            basePoint.att = adpKey.att
+            param.delta_calc()
+            debug.set(adpKey, basePoint, param)
+            flag = "True"
+            break
+          param.delta_calc()
+          debug.set(adpKey, basePoint, param)
+      else:
+        cntwin.erase()
+        cntwin.addstr(15,0,"\tincrease_delta_Listの最小値の符号が取得できません", curses.color_pair(1))
+        cntwin.refresh()
+        time.sleep(10)
+        return
+        
+      if flag == "True":
+        flag = "False"
+      # さらに最小値が続くかの探索ループ
+        while True:
+          if adpKey.att - 1 < 0:
+            param.step_att = 0
+            adpKey.att = 63
+          else :
+            param.step_att += 1
+            adpKey.att = max(0, adpKey.att - 1)
+          cntwin.erase()
+          cntwin.addstr(9,5, "step track制御を開始")
+          cntwin.addstr(10,5, "attの初期探索を終了")
+          cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_att: %d" %((adpKey.att/2), adpKey.phase, param.step_att))
+          cntwin.refresh()
+          th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
+          th.start()
+          th.join()
+          time.sleep(1)
+          if AVERAGING == "True":
+            param.cv = float(pwa)
+          else:
+            param.cv = float(pw)
+          if param.cv < param.pv :
+            param.pv = param.cv
+            basePoint.att = adpKey.att
+            param.delta_calc()
+            debug.set(adpKey, basePoint, param)
+          elif param.cv >= param.pv :
+            if adpKey.att + 1 > 62:
+              param.step_att = 0
+              adpKey.att = 0
+            else :
+              param.step_att -= 1
+              adpKey.att = max(0,adpKey.att-1)
+            cntwin.erase()
+            cntwin.addstr(9,5, "step track制御を開始")
+            cntwin.addstr(10,5, "attの初期探索を終了")
+            cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_att: %d" %((adpKey.att/2), adpKey.phase, param.step_att))
+            cntwin.refresh()
+            th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
+            th.start()
+            th.join()
+            time.sleep(1)
+            param.delta_calc()
+            debug.set(adpKey, basePoint, param)
+            break
+          
+    else:
+      cntwin.erase()
+      cntwin.addstr(15,0,"\tphaseの前後値差分の比較にエラーが発生しています", curses.color_pair(1))
+      cntwin.refresh()
+      time.sleep(10)
+      return
+    
+    if threshold >= param.pv:
+      cntwin.addstr(11,5,"thresholdに到達しました")
+      cntwin.refresh()
+      break
+    elif param.total_step >= 60:
+      cntwin.addstr(11,5,"total_stepが60に到達しました")
+      cntwin.refresh()
 
-  
-  
+    
   cntwin.erase()
   cntwin.addstr(9,5,"stepTrack制御を終了, Phaseを %4d, Attを %3.1fに調整しました\n Qを押してください" %(basePoint.phase, basePoint.att/2))
   cntwin.refresh()
-  
+    
   # auto_Tuneの実行結果を出力(デバッグ用)
   if DEBUG == "True":
-    """
-    t = time.time()
-    dt = datetime.datetime.fromtimestamp(t)
-    debug_File = pd.DataFrame([step_phase_List, step_att_List, phase_List, att_List, basePoint_phase_List, basePoint_att_List, cv_List, pv_List], index=['step_phase', 'step_att', 'phase', 'att', 'basePoint.phase', 'basePoint.att', 'cv', 'pv'])
-    # 最小のphase値探索の検証excelを出力
-    debug_File.to_excel('stepTrack_Debug'+ str(dt) +'.xlsx')
-    """
     debug.output()
   elif DEBUG == "False":
     pass
@@ -1342,8 +1217,7 @@ def stepTrack(mcu, ch, adpKey, cntwin, direction, setting):
     time.sleep(10)
     return
 """
-  
-  
+
 def step_LinearRegression(mcu, ch, adpKey, basePoint, cntwin, debug, param, setting):  # 最小値設定のbasePointを渡し，basePointから±nstep動かす
   param.delta_List_init()  # 線形回帰モデル作成のためのdelta_List[5]の初期化
   param.direction = "None"
@@ -1409,14 +1283,14 @@ def step_LinearRegression(mcu, ch, adpKey, basePoint, cntwin, debug, param, sett
     #debug.set(adpKey, basePoint, param)
     """
     linear_model = LinearRegression()
-    linear_model_List = param.increase_delta_List + param.decrease_delta_List
+    linear_model_List = param.decrease_delta_List + param.increase_delta_List
     linear_model.fit(pd.DataFrame(range(1,11)), pd.DataFrame(linear_model_List))
     param.linear_model_output(linear_model.coef_)
     if np.sign(linear_model.coef_) == 1:
-      param.direction = "increase"
+      param.direction = "decrease"
       return
     elif np.sign(linear_model.coef_) == -1:
-      param.direction = "decrease"
+      param.direction = "increase"
       return
     else:
       cntwin.erase()
@@ -1486,14 +1360,14 @@ def step_LinearRegression(mcu, ch, adpKey, basePoint, cntwin, debug, param, sett
     #debug.set(adpKey, basePoint, param)
     """
     linear_model = LinearRegression()
-    linear_model_List = param.increase_delta_List + param.decrease_delta_List
+    linear_model_List = param.decrease_delta_List + param.increase_delta_List
     linear_model.fit(pd.DataFrame(range(1,11)), pd.DataFrame(linear_model_List))
     param.linear_model_output(linear_model.coef_)
     if np.sign(linear_model.coef_) == 1:
-      param.direction = "increase"
+      param.direction = "decrease"
       return
     elif np.sign(linear_model.coef_) == -1:
-      param.direction = "decrease"
+      param.direction = "increase"
       return
     else:
       cntwin.erase()
@@ -1559,7 +1433,8 @@ class DebugFile:
     # self.decrease_model = []
   
   def set(self, adpKey, basePoint, param):
-    self.total_step.append(param.step_phase + param.step_att)
+    param.total_step_incre()
+    self.total_step.append(param.total_step)
     self.step_phase.append(param.step_phase)
     self.step_att.append(param.step_att)
     self.direction.append(param.direction)
@@ -1586,6 +1461,7 @@ class TrackParam:
     self.cv = 0.0
     self.pv = 0.0
     self.direction = "None"
+    self.total_step = 0
     self.step_phase = 0
     self.step_att = 0
     self.delta = 0.0
@@ -1616,6 +1492,9 @@ class TrackParam:
   
   def linear_model_output(self, coef):
     self.linear_model = str(coef)
+    
+  def total_step_incre(self):
+    self.total_step += 1
   
   """
   def increase_model_output(self, coef, intercept):
