@@ -584,7 +584,7 @@ def autoTune_att(mcu, ch, adpKey, cntwin):
 
 def stepTrack(mcu, ch, adpKey, cntwin):
   flag = "None"
-  threshold = 25.0
+  threshold = -25.0
   cntwin.erase()
   cntwin.addstr(9,5, "step track制御を開始")
   cntwin.refresh()
@@ -1116,12 +1116,12 @@ def stepTrack(mcu, ch, adpKey, cntwin):
     
     if threshold >= param.pv:
       cntwin.erase()
-      cntwin.addstr(9,5,"stepTrack制御を終了, Phaseを %4d, Attを %3.1fに調整しました\n Qを押してください" %(basePoint.phase, basePoint.att/2))
+      cntwin.addstr(9,5,"stepTrack制御を終了, Phaseを %4d, Attを %3.1fに調整しました Qを押してください" %(basePoint.phase, basePoint.att/2))
       cntwin.addstr(11,5,"thresholdに到達しました")
       cntwin.refresh()
       break
     elif param.total_step >= 60:
-      cntwin.addstr(9,5,"stepTrack制御を終了, Phaseを %4d, Attを %3.1fに調整しました\n Qを押してください" %(basePoint.phase, basePoint.att/2))
+      cntwin.addstr(9,5,"stepTrack制御を終了, Phaseを %4d, Attを %3.1fに調整しました Qを押してください" %(basePoint.phase, basePoint.att/2))
       cntwin.addstr(11,5,"thresholdに到達しました")
       cntwin.addstr(11,5,"total_stepが60に到達しました")
       cntwin.refresh()
