@@ -1120,10 +1120,10 @@ def stepTrack(mcu, ch, adpKey, cntwin):
       cntwin.addstr(11,5,"thresholdに到達しました")
       cntwin.refresh()
       break
-    elif param.total_step >= 60:
+    elif param.total_step >= 100:
       cntwin.addstr(9,5,"stepTrack制御を終了, Phaseを %4d, Attを %3.1fに調整しました Qを押してください" %(basePoint.phase, basePoint.att/2))
       cntwin.addstr(11,5,"thresholdに到達しました")
-      cntwin.addstr(11,5,"total_stepが60に到達しました")
+      cntwin.addstr(11,5,"total_stepが100に到達しました")
       cntwin.refresh()
       break
     
