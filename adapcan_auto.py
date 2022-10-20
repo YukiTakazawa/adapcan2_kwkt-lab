@@ -1107,7 +1107,6 @@ def stepTrack(mcu, ch, adpKey, cntwin):
             param.delta_calc()
             debug.set(adpKey, basePoint, param)
             break
-          
     else:
       cntwin.erase()
       cntwin.addstr(15,0,"\tphaseの前後値差分の比較にエラーが発生しています", curses.color_pair(1))
@@ -1116,17 +1115,17 @@ def stepTrack(mcu, ch, adpKey, cntwin):
       return
     
     if threshold >= param.pv:
+      cntwin.erase()
+      cntwin.addstr(9,5,"stepTrack制御を終了, Phaseを %4d, Attを %3.1fに調整しました\n Qを押してください" %(basePoint.phase, basePoint.att/2))
       cntwin.addstr(11,5,"thresholdに到達しました")
       cntwin.refresh()
       break
     elif param.total_step >= 60:
+      cntwin.addstr(9,5,"stepTrack制御を終了, Phaseを %4d, Attを %3.1fに調整しました\n Qを押してください" %(basePoint.phase, basePoint.att/2))
+      cntwin.addstr(11,5,"thresholdに到達しました")
       cntwin.addstr(11,5,"total_stepが60に到達しました")
       cntwin.refresh()
-
-    
-  cntwin.erase()
-  cntwin.addstr(9,5,"stepTrack制御を終了, Phaseを %4d, Attを %3.1fに調整しました\n Qを押してください" %(basePoint.phase, basePoint.att/2))
-  cntwin.refresh()
+      break
     
   # auto_Tuneの実行結果を出力(デバッグ用)
   if DEBUG == "True":
