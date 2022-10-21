@@ -617,12 +617,12 @@ def stepTrack(mcu, ch, adpKey, cntwin):
     if threshold >= param.pv:
       cntwin.erase()
       cntwin.addstr(9,5,"stepTrack制御を終了\n\tPhaseを %4d, Attを %3.1fに調整しました\n\ttotal_step: %d\n\tQを押してください\n\t" %(basePoint.phase, basePoint.att/2, param.total_step), curses.color_pair(1))
-      cntwin.addstr(15,5,"thresholdに到達しました", curses.color_pair(1))
+      cntwin.addstr(15,5,"thresholdに到達しました", curses.color_pair(3))
       cntwin.refresh()
       break
     elif param.total_step >= 2000:
       cntwin.addstr(9,5,"stepTrack制御を終了\n\tPhaseを %4d, Attを %3.1fに調整しました\n\ttotal_step: %d\n\tQを押してください\n\t" %(basePoint.phase, basePoint.att/2, param.total_step), curses.color_pair(1))
-      cntwin.addstr(15,5,"total_stepが2000を超えました", curses.color_pair(1))
+      cntwin.addstr(15,5,"total_stepが2000を超えました", curses.color_pair(3))
       cntwin.refresh()
       break
   
@@ -633,7 +633,7 @@ def stepTrack(mcu, ch, adpKey, cntwin):
     pass
   else:
     cntwin.erase()
-    cntwin.addstr(15,0,"\tDebugオプションに有効な文字列が与えられていません", curses.color_pair(1))
+    cntwin.addstr(15,0,"\tDebugオプションに有効な文字列が与えられていません", curses.color_pair(3))
     cntwin.refresh()
     time.sleep(10)
   x = cntwin.getch()
@@ -701,7 +701,7 @@ def step_phase_tune(mcu, ch, adpKey, basePoint, cntwin, debug, param):
           break
     else:
       cntwin.erase()
-      cntwin.addstr(15,0,"\tincrease_delta_Listの最小値の符号が取得できません", curses.color_pair(1))
+      cntwin.addstr(15,0,"\tincrease_delta_Listの最小値の符号が取得できません", curses.color_pair(3))
       cntwin.refresh()
       time.sleep(10)
       return
@@ -810,7 +810,7 @@ def step_phase_tune(mcu, ch, adpKey, basePoint, cntwin, debug, param):
           break
     else:
       cntwin.erase()
-      cntwin.addstr(15,0,"\tincrease_delta_Listの最小値の符号が取得できません", curses.color_pair(1))
+      cntwin.addstr(15,0,"\tincrease_delta_Listの最小値の符号が取得できません", curses.color_pair(3))
       cntwin.refresh()
       time.sleep(10)
       return
@@ -864,7 +864,7 @@ def step_phase_tune(mcu, ch, adpKey, basePoint, cntwin, debug, param):
         
   else:
     cntwin.erase()
-    cntwin.addstr(15,0,"\tphaseの前後値差分の比較にエラーが発生しています", curses.color_pair(1))
+    cntwin.addstr(15,0,"\tphaseの前後値差分の比較にエラーが発生しています", curses.color_pair(3))
     cntwin.refresh()
     time.sleep(10)
     return
@@ -1217,7 +1217,7 @@ def step_LinearRegression(mcu, ch, adpKey, basePoint, cntwin, debug, param):  # 
     return
   else:
     cntwin.erase()
-    cntwin.addstr(15,0,"\t回帰直線でエラー", curses.color_pair(1))
+    cntwin.addstr(15,0,"\t回帰直線でエラー", curses.color_pair(3))
     cntwin.refresh()
     time.sleep(10)
     return
