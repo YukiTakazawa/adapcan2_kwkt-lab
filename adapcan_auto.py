@@ -847,7 +847,7 @@ def step_phase_tune(mcu, ch, adpKey, basePoint, cntwin, debug, param):
           if adpKey.phase + 130 > 4095:
             adpKey.phase = 0
           else :
-            adpKey.phase = max(0,adpKey.phase-130)
+            adpKey.phase = max(0,adpKey.phase+130)
           param.step_phase_incre()
           cntwin.erase()
           cntwin.addstr(9,5, "step track制御を開始")
@@ -874,11 +874,10 @@ def step_phase_tune(mcu, ch, adpKey, basePoint, cntwin, debug, param):
 def step_att_tune(mcu, ch, adpKey, basePoint, cntwin, debug, param):
   while True:
     if adpKey.att + 1 > 62:
-      param.step_att = 0
       adpKey.att = 0
     else :
-      param.step_att += 1
       adpKey.att = min(63, adpKey.att + 1)
+    param.step_att_incre()
     cntwin.erase()
     cntwin.addstr(9,5, "step track制御を開始")
     cntwin.addstr(10,5, "attの初期探索を終了")
@@ -892,18 +891,17 @@ def step_att_tune(mcu, ch, adpKey, basePoint, cntwin, debug, param):
       param.cv = float(pwa)
     else:
       param.cv = float(pw)
+    param.delta_calc()
+    debug.set(adpKey, basePoint, param)
     if param.cv < param.pv :
       param.pv = param.cv
       basePoint.att = adpKey.att
-      param.delta_calc()
-      debug.set(adpKey, basePoint, param)
     elif param.cv >= param.pv :
       if adpKey.att - 1 < 0:
-        param.step_att = 0
         adpKey.att = 63
       else :
-        param.step_att -= 1
         adpKey.phase = max(0,adpKey.att-1)
+      param.step_att_incre()
       cntwin.erase()
       cntwin.addstr(9,5, "step track制御を開始")
       cntwin.addstr(10,5, "attの初期探索を終了")
@@ -1328,7 +1326,7 @@ class DebugFile:
   def output(self):
     t = time.time()
     dt = datetime.datetime.fromtimestamp(t)
-    debug_File = pd.DataFrame([self.total_step, self.step_phase, self.step_att, self.phase, self.att, self.basePoint_phase, self.basePoint_att, self.cv, self.pv, self.delta, self.direction, self.linear_model], index=['total_step', 'step_phase', 'step_att', 'phase', 'att', 'basePoint.phase', 'basePoint.att', 'current value', 'previous value', 'delta value', 'direction', 'linear_model'])
+    debug_File = pd.DataFrame([self.total_step-1, self.step_phase, self.step_att, self.phase, self.att, self.basePoint_phase, self.basePoint_att, self.cv, self.pv, self.delta, self.direction, self.linear_model], index=['total_step', 'step_phase', 'step_att', 'phase', 'att', 'basePoint.phase', 'basePoint.att', 'current value', 'previous value', 'delta value', 'direction', 'linear_model'])
     # 最小のphase値探索の検証excelを出力
     debug_File.to_excel('stepTrack_Debug'+ str(dt) +'.xlsx')
     
