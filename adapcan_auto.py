@@ -1326,7 +1326,7 @@ class DebugFile:
   def output(self):
     t = time.time()
     dt = datetime.datetime.fromtimestamp(t)
-    debug_File = pd.DataFrame([self.total_step-1, self.step_phase, self.step_att, self.phase, self.att, self.basePoint_phase, self.basePoint_att, self.cv, self.pv, self.delta, self.direction, self.linear_model], index=['total_step', 'step_phase', 'step_att', 'phase', 'att', 'basePoint.phase', 'basePoint.att', 'current value', 'previous value', 'delta value', 'direction', 'linear_model'])
+    debug_File = pd.DataFrame([self.total_step, self.step_phase, self.step_att, self.phase, self.att, self.basePoint_phase, self.basePoint_att, self.cv, self.pv, self.delta, self.direction, self.linear_model], index=['total_step', 'step_phase', 'step_att', 'phase', 'att', 'basePoint.phase', 'basePoint.att', 'current value', 'previous value', 'delta value', 'direction', 'linear_model'])
     # 最小のphase値探索の検証excelを出力
     debug_File.to_excel('stepTrack_Debug'+ str(dt) +'.xlsx')
     
@@ -1335,7 +1335,7 @@ class TrackParam:
     self.cv = 0.0
     self.pv = 0.0
     self.direction = "None"
-    self.total_step = 0
+    self.total_step = -1
     self.step_phase = 0
     self.step_att = 0
     self.delta = 0.0
