@@ -1159,7 +1159,7 @@ def step_LinearRegression(mcu, ch, adpKey, basePoint, cntwin, debug, param):  # 
     th.start()
     th.join()
     time.sleep(1)
-    param.dc_power("phase")
+    param.get_dcpower("phase")
     param.decrease_delta_append()
     debug.set(adpKey, basePoint, param)
   linear_model = LinearRegression()
