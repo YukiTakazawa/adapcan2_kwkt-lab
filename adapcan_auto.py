@@ -612,10 +612,10 @@ def stepTrack(mcu, ch, adpKey, cntwin):
   while True:
     # phase調整
     step_phase_tune(mcu, ch, adpKey, basePoint, cntwin, debug, param)
-    if param.att_flag == False:
+    if param.att_flag == "False":
       # att調整
       step_att_tune(mcu, ch, adpKey, basePoint, cntwin, debug, param)
-    elif param.att_flag == True:
+    elif param.att_flag == "True":
       pass
     else :
       cntwin.erase()
