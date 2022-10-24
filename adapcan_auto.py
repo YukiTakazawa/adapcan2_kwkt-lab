@@ -591,7 +591,7 @@ def stepTrack(mcu, ch, adpKey, cntwin):
   # 初期化設定(phase, attともに0からスタート)
   adpKey.phase = 0
   adpKey.att = 0
-  cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d iteration: 0 total_step: 0" %((adpKey.att/2), adpKey.phase))
+  cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: 0 step_att: 0 total_step: 0" %((adpKey.att/2), adpKey.phase))
   cntwin.refresh()
   th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
   th.start()
@@ -612,9 +612,17 @@ def stepTrack(mcu, ch, adpKey, cntwin):
   while True:
     # phase調整
     step_phase_tune(mcu, ch, adpKey, basePoint, cntwin, debug, param)
-    if(param.att_flag == False):
+    if param.att_flag == False:
       # att調整
       step_att_tune(mcu, ch, adpKey, basePoint, cntwin, debug, param)
+    elif param.att_flag == True:
+      pass
+    else :
+      cntwin.erase()
+      cntwin.addstr(15,0,"\tatt_flagに有効なパラメータが設定されていません", curses.color_pair(3))
+      cntwin.refresh()
+      time.sleep(10)
+      return
     
     if threshold >= param.pv:
       cntwin.erase()
@@ -624,7 +632,7 @@ def stepTrack(mcu, ch, adpKey, cntwin):
       break
     elif param.total_step >= 500:
       cntwin.addstr(9,5,"stepTrack制御を終了\n\tPhaseを %4d, Attを %3.1fに調整しました\n\ttotal_step: %d\n\tQを押してください\n\t" %(basePoint.phase, basePoint.att/2, param.total_step), curses.color_pair(1))
-      cntwin.addstr(15,5,"total_stepが2000を超えました", curses.color_pair(3))
+      cntwin.addstr(15,5,"total_stepが500を超えました", curses.color_pair(3))
       cntwin.refresh()
       break
   
@@ -661,7 +669,7 @@ def step_phase_tune(mcu, ch, adpKey, basePoint, cntwin, debug, param):
       cntwin.erase()
       cntwin.addstr(9,5, "step track制御を開始")
       cntwin.addstr(10,5, "phaseの最小値探索を開始")
-      cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d total_step: %d" %((adpKey.att/2), adpKey.phase, param.step_phase, param.total_step))
+      cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d step_att: %d total_step: %d" %((adpKey.att/2), adpKey.phase, param.step_phase, param.step_att, param.total_step))
       cntwin.refresh()
       th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
       th.start()
@@ -684,7 +692,7 @@ def step_phase_tune(mcu, ch, adpKey, basePoint, cntwin, debug, param):
         cntwin.erase()
         cntwin.addstr(9,5, "step track制御を開始")
         cntwin.addstr(10,5, "phaseの最小値探索を開始")
-        cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d total_step: %d" %((adpKey.att/2), adpKey.phase, param.step_phase, param.total_step))
+        cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d step_att: %d total_step: %d" %((adpKey.att/2), adpKey.phase, param.step_phase, param.step_att, param.total_step))
         cntwin.refresh()
         th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
         th.start()
@@ -718,11 +726,10 @@ def step_phase_tune(mcu, ch, adpKey, basePoint, cntwin, debug, param):
           adpKey.phase = 0
         else :
           adpKey.phase = min(4095, adpKey.phase + 130)
-        param.step_phase_incre()
         cntwin.erase()
         cntwin.addstr(9,5, "step track制御を開始")
         cntwin.addstr(10,5, "phaseの極小値探索を開始")
-        cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d total_step: %d" %((adpKey.att/2), adpKey.phase, param.step_phase, param.total_step))
+        cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d step_att: %d total_step: %d" %((adpKey.att/2), adpKey.phase, param.step_phase, param.step_att, param.total_step))
         cntwin.refresh()
         th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
         th.start()
@@ -733,6 +740,7 @@ def step_phase_tune(mcu, ch, adpKey, basePoint, cntwin, debug, param):
         else:
           param.cv = float(pw)
         param.delta_calc()
+        param.step_phase_incre()
         debug.set(adpKey, basePoint, param)
         if param.cv < param.pv :
           param.pv = param.cv
@@ -746,7 +754,7 @@ def step_phase_tune(mcu, ch, adpKey, basePoint, cntwin, debug, param):
           cntwin.erase()
           cntwin.addstr(9,5, "step track制御を開始")
           cntwin.addstr(10,5, "phaseの極小値探索を終了")
-          cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d total_step: %d" %((basePoint.att/2), basePoint.phase, param.step_phase, param.total_step))
+          cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d step_att: %d total_step: %d" %((adpKey.att/2), adpKey.phase, param.step_phase, param.step_att, param.total_step))
           cntwin.refresh()
           th = threading.Thread(target=mcu.senddata, args=(ch, basePoint.att, basePoint.phase,))
           th.start()
@@ -769,7 +777,7 @@ def step_phase_tune(mcu, ch, adpKey, basePoint, cntwin, debug, param):
       cntwin.erase()
       cntwin.addstr(9,5, "step track制御を開始")
       cntwin.addstr(10,5, "phaseの最小値探索を開始")
-      cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d total_step: %d" %((adpKey.att/2), adpKey.phase, param.step_phase, param.total_step))
+      cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d step_att: %d total_step: %d" %((adpKey.att/2), adpKey.phase, param.step_phase, param.step_att, param.total_step))
       cntwin.refresh()
       th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
       th.start()
@@ -791,7 +799,7 @@ def step_phase_tune(mcu, ch, adpKey, basePoint, cntwin, debug, param):
         cntwin.erase()
         cntwin.addstr(9,5, "step track制御を開始")
         cntwin.addstr(10,5, "phaseの最小値探索を開始")
-        cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d total_step: %d" %((adpKey.att/2), adpKey.phase, param.step_phase, param.total_step))
+        cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d step_att: %d total_step: %d" %((adpKey.att/2), adpKey.phase, param.step_phase, param.step_att, param.total_step))
         cntwin.refresh()
         th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
         th.start()
@@ -828,7 +836,7 @@ def step_phase_tune(mcu, ch, adpKey, basePoint, cntwin, debug, param):
         cntwin.erase()
         cntwin.addstr(9,5, "step track制御を開始")
         cntwin.addstr(10,5, "phaseの極小値探索を開始")
-        cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d total_step: %d" %((adpKey.att/2), adpKey.phase, param.step_phase, param.total_step))
+        cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d step_att: %d total_step: %d" %((adpKey.att/2), adpKey.phase, param.step_phase, param.step_att, param.total_step))
         cntwin.refresh()
         th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
         th.start()
@@ -852,7 +860,7 @@ def step_phase_tune(mcu, ch, adpKey, basePoint, cntwin, debug, param):
           cntwin.erase()
           cntwin.addstr(9,5, "step track制御を開始")
           cntwin.addstr(10,5, "phaseの極小値探索を終了")
-          cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d total_step: %d" %((basePoint.att/2), basePoint.phase, param.step_phase, param.total_step))
+          cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d step_att: %d total_step: %d" %((adpKey.att/2), adpKey.phase, param.step_phase, param.step_att, param.total_step))
           cntwin.refresh()
           th = threading.Thread(target=mcu.senddata, args=(ch, basePoint.att, basePoint.phase,))
           th.start()
@@ -880,8 +888,8 @@ def step_att_tune(mcu, ch, adpKey, basePoint, cntwin, debug, param):
     param.step_att_incre()
     cntwin.erase()
     cntwin.addstr(9,5, "step track制御を開始")
-    cntwin.addstr(10,5, "attの探索を開始")
-    cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d total_step: %d" %((adpKey.att/2), adpKey.phase, param.step_phase, param.total_step))
+    cntwin.addstr(10,5, "attの最小値探索を開始")
+    cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d step_att: %d total_step: %d" %((adpKey.att/2), adpKey.phase, param.step_phase, param.step_att, param.total_step))
     cntwin.refresh()
     th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
     th.start()
@@ -901,8 +909,8 @@ def step_att_tune(mcu, ch, adpKey, basePoint, cntwin, debug, param):
       param.step_att_incre()
       cntwin.erase()
       cntwin.addstr(9,5, "step track制御を開始")
-      cntwin.addstr(10,5, "attの探索を終了")
-      cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_att: %d total_step: %d" %((basePoint.att/2), basePoint.phase, param.step_att, param.total_step))
+      cntwin.addstr(10,5, "attの最小値探索を終了")
+      cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d step_att: %d total_step: %d" %((adpKey.att/2), adpKey.phase, param.step_phase, param.step_att, param.total_step))
       cntwin.refresh()
       th = threading.Thread(target=mcu.senddata, args=(ch, basePoint.att, basePoint.phase,))
       th.start()
@@ -1162,7 +1170,7 @@ def step_LinearRegression(mcu, ch, adpKey, basePoint, cntwin, debug, param):  # 
     cntwin.erase()
     cntwin.addstr(9,5, "step track制御を開始")
     cntwin.addstr(10,5, "phaseの調整方向アルゴリズムを開始")
-    cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d total_step: %d" %((adpKey.att/2), adpKey.phase, param.step_phase, param.total_step))
+    cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d step_att: %d total_step: %d" %((adpKey.att/2), adpKey.phase, param.step_phase, param.step_att, param.total_step))
     cntwin.refresh()
     th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
     th.start()
@@ -1184,7 +1192,7 @@ def step_LinearRegression(mcu, ch, adpKey, basePoint, cntwin, debug, param):  # 
     cntwin.erase()
     cntwin.addstr(9,5, "step track制御を開始")
     cntwin.addstr(10,5, "phaseの調整方向アルゴリズムを開始")
-    cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d total_step: %d" %((adpKey.att/2), adpKey.phase, param.step_phase, param.total_step))
+    cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d step_att: %d total_step: %d" %((adpKey.att/2), adpKey.phase, param.step_phase, param.step_att, param.total_step))
     cntwin.refresh()
     th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
     th.start()
