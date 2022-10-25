@@ -681,10 +681,10 @@ def step_phase_tune(mcu, ch, adpKey, basePoint, cntwin, debug, param):
       
     elif np.sign(min(increase_delta_List)) == 1:  # 最小値がプラスの符号なら最小値の更新がなかったため，探索を続ける
       adpKey.phase = 4095 - adpKey.phase  # increase側へ調整するため，phase値をdecrease側から反転させる
-      # for i in range(11):
-      while True:
-        if adpKey.phase == basePoint.phase:
-          break
+      for i in range(11):
+      #while True:
+      #  if adpKey.phase == basePoint.phase:
+      #   break
         if adpKey.phase + 130 > 4095:
           adpKey.phase = 0
         else :
@@ -719,8 +719,8 @@ def step_phase_tune(mcu, ch, adpKey, basePoint, cntwin, debug, param):
     if param.flag == "True":
       param.flag = "False"
       while True:
-        if adpKey.phase == basePoint.phase:
-          break
+        #if adpKey.phase == basePoint.phase:
+        #  break
         if adpKey.phase + 130 > 4095:
           adpKey.phase = 0
         else :
@@ -782,10 +782,10 @@ def step_phase_tune(mcu, ch, adpKey, basePoint, cntwin, debug, param):
       debug.set(adpKey, basePoint, param)
       param.flag = "True"
     elif np.sign(min(decrease_delta_List)) == 1:  # 最小値がプラスの符号なら最小値の更新がなかったため，探索を続ける
-      # for i in range(11):
-      while True:
-        if adpKey.phase == basePoint.phase:
-          break
+      for i in range(11):
+      #while True:
+      #  if adpKey.phase == basePoint.phase:
+      #    break
         if adpKey.phase - 130 < 0:
           adpKey.phase = 4095
         else :
@@ -818,8 +818,8 @@ def step_phase_tune(mcu, ch, adpKey, basePoint, cntwin, debug, param):
       param.flag = "False"
     # さらに最小値が続くかの探索ループ
       while True:
-        if adpKey.phase == basePoint.phase:
-          break
+      #  if adpKey.phase == basePoint.phase:
+      #    break
         if adpKey.phase - 130 < 0:
           adpKey.phase = 4095
         else :
