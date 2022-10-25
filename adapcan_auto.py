@@ -852,6 +852,7 @@ def step_phase_tune(mcu, ch, adpKey, basePoint, cntwin, debug, param):
 
 def step_att_tune(mcu, ch, adpKey, basePoint, cntwin, debug, param):
   adpKey.att = basePoint.att
+  flag = "False"
   while True:
     if adpKey.att + 1 > 62:
       param.att_flag = "True"
@@ -872,7 +873,8 @@ def step_att_tune(mcu, ch, adpKey, basePoint, cntwin, debug, param):
     if param.cv < param.pv :
       param.pv = param.cv
       basePoint.att = adpKey.att
-    elif param.cv >= param.pv :
+      flag == "True"
+    elif flag == "True" and param.cv >= param.pv :
       adpKey.att = max(0,adpKey.att-1)
       cntwin.erase()
       cntwin.addstr(9,5, "step track制御を開始")
