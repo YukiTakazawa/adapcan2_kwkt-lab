@@ -379,17 +379,11 @@ def fullSearch(mcu, ch, adpKey, cntwin):
   th.join()
   time.sleep(3)
   
-  # Pointの基準点basePointをphase, attをともに0で初期化
+  # Pointの基準点basePointをphase, attをともに0で初期化とpvの取得
   basePoint = adapcanKeys(0, 0)
   debug = DebugFile()
   param = TrackParam()
   debug.set(adpKey, basePoint, param)
-  
-  # 初期化時のDC powerを取得
-  if AVERAGING == "True":
-    param.pv = float(pwa)
-  else:
-    param.pv = float(pw)
   
   if PHASETUNE == "True":
     autoTune_phase(mcu, ch, adpKey, basePoint, cntwin, debug, param)
@@ -559,17 +553,11 @@ def stepTrack(mcu, ch, adpKey, cntwin):
   th.join()
   time.sleep(3)
   
-  # Pointの基準点basePointをphase, attをともに0で初期化
+  # Pointの基準点basePointをphase, attをともに0で初期化し, pvを取得
   basePoint = adapcanKeys(0, 0)
   debug = DebugFile()
   param = TrackParam()
   debug.set(adpKey, basePoint, param)
-  
-  # 初期化時のDC powerを取得
-  if AVERAGING == "True":
-    param.pv = float(pwa)
-  else:
-    param.pv = float(pw)
   
   while True:
     # phase調整
@@ -1248,29 +1236,27 @@ class DebugFile:
     self.pv = []
     self.delta = []
     self.linear_model = []
-    # self.increase_model = []
-    # self.decrease_model = []
+    self.init_pv_delta_List = []
   
   def set(self, adpKey, basePoint, param):
     self.total_step.append(param.total_step)
     self.step_phase.append(param.step_phase)
     self.step_att.append(param.step_att)
     self.direction.append(param.direction)
-    self.phase.append(adpKey.phase)
+    self.phase.append(adpKey.phase/130*11.4)
     self.att.append(adpKey.att)
-    self.basePoint_phase.append(basePoint.phase)
+    self.basePoint_phase.append(basePoint.phase/130*11.4)
     self.basePoint_att.append(basePoint.att)
     self.cv.append(param.cv)
     self.pv.append(param.pv)
     self.delta.append(param.delta)
     self.linear_model.append(param.linear_model)
-    # self.increase_model.append(param.increase_model)
-    # self.decrease_model.append(param.decrease_model)
-
+    self.init_pv_delta_List.append(param.init_pv_delta)
+    
   def output(self, setting):
     t = time.time()
     dt = datetime.datetime.fromtimestamp(t)
-    debug_File = pd.DataFrame([self.total_step, self.step_phase, self.step_att, self.phase, self.att, self.basePoint_phase, self.basePoint_att, self.cv, self.pv, self.delta, self.direction, self.linear_model], index=['total_step', 'step_phase', 'step_att', 'phase', 'att', 'basePoint.phase', 'basePoint.att', 'current value(CV)', 'previous value(PV)', 'delta value', 'direction', 'linear_model'])
+    debug_File = pd.DataFrame([self.total_step, self.step_phase, self.step_att, self.phase, self.att, self.basePoint_phase, self.basePoint_att, self.cv, self.pv, self.delta, self.direction, self.linear_model, self.init_pv_delta_List], index=['total_step', 'step_phase', 'step_att', 'phase', 'att', 'basePoint.phase', 'basePoint.att', 'current value(CV)', 'previous value(PV)', 'delta value', 'direction', 'linear_model', 'init_pvとの差分'])
     # 最小のDC power値探索の検証excelを出力
     if setting == "fullSearch":
       debug_File.to_excel('fullSearch_Debug'+ str(dt) +'.xlsx')
@@ -1292,6 +1278,13 @@ class TrackParam:
     self.decrease_delta_List = []
     self.phase_flag = "False"
     self.att_flag = "False"
+    self.init_pv_delta = 0.0
+    if AVERAGING == "True":
+      self.init_pv = float(pwa)
+      self.pv = self.init_pv
+    else:
+      self.init_pv = float(pw)
+      self.pv = self.init_pv
     
   def increase_delta_append(self):
     self.increase_delta_List.append(self.delta)
@@ -1303,15 +1296,18 @@ class TrackParam:
     self.increase_delta_List = []
     self.decrease_delta_List = []
   
+  # 回帰直線の傾きを代入
   def linear_model_output(self, coef):
     self.linear_model = str(coef)
   
+  # DC powerの取得と差分の計測，そしてステップ数のインクリメントを行う
   def get_dcpower(self, setting):
     if AVERAGING == "True":
       self.cv = float(pwa)
     else:
       self.cv = float(pw)
     self.delta = self.cv - self.pv
+    self.init_pv_delta = self.cv - self.init_pv
     if setting == "phase":
       self.step_phase += 1
     elif setting == "att":
