@@ -415,7 +415,7 @@ def fullSearch(mcu, ch, adpKey, cntwin):
     cntwin.refresh()
   time.sleep(1)
   cntwin.erase()
-  cntwin.addstr(12,5,"自動制御を終了, Phaseを %4d, Attを %3.1fに調整しました\n Qを押してください" %(minphase, minatt/2))
+  cntwin.addstr(12,5,"自動制御を終了\n\tAttを %3.1f, Phaseを %4dに調整しました\n\t Qを押してください" %(basePoint.att/2, basePoint.phase))
   cntwin.refresh()
   
   # auto_Tuneの実行結果を出力(デバッグ用)
