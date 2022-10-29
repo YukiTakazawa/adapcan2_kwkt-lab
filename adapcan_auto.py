@@ -422,7 +422,7 @@ def fullSearch(mcu, ch, adpKey, cntwin):
   
   # auto_Tuneの実行結果を出力(デバッグ用)
   if DEBUG == "True":
-    debug.output()
+    debug.output("fullSearch")
   
   x = cntwin.getch()
   if chr(x) == 'q':
@@ -602,7 +602,7 @@ def stepTrack(mcu, ch, adpKey, cntwin):
   debug.set(adpKey, basePoint, param)
   # auto_Tuneの実行結果を出力(デバッグ用)
   if DEBUG == "True":
-    debug.output()
+    debug.output("stepTrack")
   elif DEBUG == "False":
     pass
   else:
@@ -1267,12 +1267,15 @@ class DebugFile:
     # self.increase_model.append(param.increase_model)
     # self.decrease_model.append(param.decrease_model)
 
-  def output(self):
+  def output(self, setting):
     t = time.time()
     dt = datetime.datetime.fromtimestamp(t)
     debug_File = pd.DataFrame([self.total_step, self.step_phase, self.step_att, self.phase, self.att, self.basePoint_phase, self.basePoint_att, self.cv, self.pv, self.delta, self.direction, self.linear_model], index=['total_step', 'step_phase', 'step_att', 'phase', 'att', 'basePoint.phase', 'basePoint.att', 'current value(CV)', 'previous value(PV)', 'delta value', 'direction', 'linear_model'])
     # 最小のDC power値探索の検証excelを出力
-    debug_File.to_excel('stepTrack_Debug'+ str(dt) +'.xlsx')
+    if setting == "fullSearch":
+      debug_File.to_excel('fullSearch_Debug'+ str(dt) +'.xlsx')
+    elif setting == "stepTrack":
+      debug_File.to_excel('stepTrack_Debug'+ str(dt) +'.xlsx')
     
 class TrackParam:
   def __init__(self):
