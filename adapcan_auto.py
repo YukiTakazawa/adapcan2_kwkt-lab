@@ -365,6 +365,10 @@ def autoTune(mcu, ch, adpKey, cntwin, stdscr, pw):   # 自動制御メソッド
 
 
 def fullSearch(mcu, ch, adpKey, cntwin):
+  global minphase
+  global debug_phase
+  global minatt
+  global debug_att
   cntwin.erase()
   cntwin.addstr(9,5, "全探索を開始")
   cntwin.refresh()
@@ -408,9 +412,6 @@ def fullSearch(mcu, ch, adpKey, cntwin):
 
 
 def autoTune_phase(mcu, ch, adpKey, cntwin):
-  global minphase
-  global debug_phase
-  
   # global time_phase
   # 最小phase探索の検証用のexcel出力リスト
   iterationList = list(range(32))   # 0 ~ 32のイテレーションリストを作成
@@ -501,9 +502,6 @@ def autoTune_phase(mcu, ch, adpKey, cntwin):
 
 
 def autoTune_att(mcu, ch, adpKey, cntwin):
-  global minatt
-  global debug_att
-  
   # global time_att
   # 最小phase探索の検証用のexcel出力リスト
   iterationList = list(range(64))   # 0 ~ 32のイテレーションリストを作成
