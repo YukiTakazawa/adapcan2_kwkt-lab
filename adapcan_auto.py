@@ -400,6 +400,7 @@ def fullSearch(mcu, ch, adpKey, cntwin):
     cntwin.erase()
     cntwin.addstr(9,5, "全探索を開始")
     cntwin.addstr(10,5, "phaseの自動調整をスキップしました")
+    time.sleep(2)
     cntwin.refresh()
   time.sleep(1)
   if ATTTUNE == "True":
@@ -412,6 +413,7 @@ def fullSearch(mcu, ch, adpKey, cntwin):
     cntwin.addstr(9,5, "全探索を開始")
     cntwin.addstr(10,5, "phaseの自動調整を終了しました")
     cntwin.addstr(11,5, "attの自動調整をスキップしました")
+    time.sleep(2)
     cntwin.refresh()
   time.sleep(1)
   cntwin.erase()
