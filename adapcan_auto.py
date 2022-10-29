@@ -371,6 +371,8 @@ def fullSearch(mcu, ch, adpKey, cntwin):
   if PHASETUNE == "True":
     autoTune_phase(mcu, ch, adpKey, cntwin)
     # cntwin.addstr(5,5,str(time_phase))
+  elif PHASETUNE == "False":
+    minphase = 0
   else:
     cntwin.addstr(10,5, "phaseの自動調整をスキップしました")
     cntwin.refresh()
@@ -378,6 +380,8 @@ def fullSearch(mcu, ch, adpKey, cntwin):
   if ATTTUNE == "True":
     autoTune_att(mcu, ch, adpKey, cntwin)
     # cntwin.addstr(6,5,str(time_att))
+  elif ATTTUNE == "False":
+    minatt = 0
   else:
     cntwin.addstr(11,5, "attの自動調整をスキップしました")
     cntwin.refresh()
