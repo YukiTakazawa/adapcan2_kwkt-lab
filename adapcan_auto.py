@@ -365,54 +365,76 @@ def autoTune(mcu, ch, adpKey, cntwin, stdscr, pw):   # 自動制御メソッド
 
 
 def fullSearch(mcu, ch, adpKey, cntwin):
-  global minphase
-  global debug_phase
-  global minatt
-  global debug_att
+  # 初期化設定(phase, attをともに0からスタート)
+  adpKey.phase = 0
+  adpKey.att = 0
+  
   cntwin.erase()
   cntwin.addstr(9,5, "全探索を開始")
+  cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: 0 step_att: 0 total_step: 0" %((adpKey.att/2), adpKey.phase))
   cntwin.refresh()
+  th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
+  th.start()
+  cntwin.refresh()
+  th.join()
+  time.sleep(3)
+  
+  # Pointの基準点basePointをphase, attをともに0で初期化
+  basePoint = adapcanKeys(0, 0)
+  debug = DebugFile()
+  param = TrackParam()
+  debug.set(adpKey, basePoint, param)
+  
+  # 初期化時のDC powerを取得
+  if AVERAGING == "True":
+    param.pv = float(pwa)
+  else:
+    param.pv = float(pw)
+  
   if PHASETUNE == "True":
-    autoTune_phase(mcu, ch, adpKey, cntwin)
+    autoTune_phase(mcu, ch, adpKey, basePoint, cntwin, debug, param)
     # cntwin.addstr(5,5,str(time_phase))
   elif PHASETUNE == "False":
     minphase = 0
   else:
+    cntwin.erase()
+    cntwin.addstr(9,5, "全探索を開始")
     cntwin.addstr(10,5, "phaseの自動調整をスキップしました")
     cntwin.refresh()
   time.sleep(1)
   if ATTTUNE == "True":
-    autoTune_att(mcu, ch, adpKey, cntwin)
+    autoTune_att(mcu, ch, adpKey, basePoint, cntwin, debug, param)
     # cntwin.addstr(6,5,str(time_att))
   elif ATTTUNE == "False":
     minatt = 0
   else:
+    cntwin.erase()
+    cntwin.addstr(9,5, "全探索を開始")
+    cntwin.addstr(10,5, "phaseの自動調整を終了しました")
     cntwin.addstr(11,5, "attの自動調整をスキップしました")
     cntwin.refresh()
   time.sleep(1)
+  cntwin.erase()
   cntwin.addstr(12,5,"自動制御を終了, Phaseを %4d, Attを %3.1fに調整しました\n Qを押してください" %(minphase, minatt/2))
   cntwin.refresh()
   
   # auto_Tuneの実行結果を出力(デバッグ用)
   if DEBUG == "True":
-    t = time.time()
-    dt = datetime.datetime.fromtimestamp(t)
-    
-    # 最小のphase値探索の検証excelを出力
-    with pd.ExcelWriter('DebugFile'+str(dt)+'.xlsx') as writer:
-      if PHASETUNE == "True":
-        debug_phase.to_excel(writer, sheet_name='phaseDebug')
-      if ATTTUNE == "True":
-        debug_att.to_excel(writer, sheet_name='attDebug')
-        
+    debug.output()
+  
   x = cntwin.getch()
   if chr(x) == 'q':
     return
 
 
 
-def autoTune_phase(mcu, ch, adpKey, cntwin):
-  # global time_phase
+def autoTune_phase(mcu, ch, adpKey, basePoint, cntwin, debug, param):
+  cntwin.erase()
+  cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: 0 step_att: 0 total_step: 0" %((basePoint.att/2), adpKey.phase))
+  cntwin.addstr(9,5, "全探索を開始")
+  cntwin.addstr(10,5,"phaseの自動調整を開始")
+  cntwin.refresh()
+  """
   # 最小phase探索の検証用のexcel出力リスト
   iterationList = list(range(32))   # 0 ~ 32のイテレーションリストを作成
   phaseList = []
@@ -420,35 +442,13 @@ def autoTune_phase(mcu, ch, adpKey, cntwin):
   cvList = []
   pvList = []
   minphaseList = []
-  
-  # time_sta = time.perf_counter()
-  
-  # 初期化設定(phase, attともに0からスタート)
-  adpKey.phase = 0
-  adpKey.att = 0
-  
-  cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d iteration: 0" %((adpKey.att/2), adpKey.phase))
-  cntwin.addstr(10,5,"phaseの自動調整を開始")
-  cntwin.refresh()
-  th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
-  th.start()
-  cntwin.refresh()
-  th.join()
-  time.sleep(3)
-  
-  if AVERAGING == "True":
-    pv = pwa   # 現在のphaseとatt設定で最小DC powerを初期化
-  else:
-    pv = pw
-  minphase = adpKey.phase   # 最小のphase値を初期化
-  
   # デバッグ用のリスト追加
   phaseList.append(adpKey.phase)
   dcpowerList.append(pv)
   cvList.append('0')
   pvList.append(pv)
   minphaseList.append(minphase)
-
+  """
   
   for i in range(31):
     if adpKey.phase + 130 > 4095:
@@ -456,85 +456,51 @@ def autoTune_phase(mcu, ch, adpKey, cntwin):
     else:
       adpKey.phase = min(4095,adpKey.phase + 130)
     
-    cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d iteration: %d" %((adpKey.att/2), adpKey.phase, i+1))
+    cntwin.erase()
+    cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d step_att: %d total_step: %d" %((basePoint.att/2), adpKey.phase, param.step_phase, param.step_att, param.total_step))
+    cntwin.addstr(9,5, "全探索を開始")
+    cntwin.addstr(10,5,"phaseの自動調整を開始")
     cntwin.refresh()
     
     # 位相を動かす
-    th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
+    th = threading.Thread(target=mcu.senddata, args=(ch, basePoint.att, adpKey.phase,))
     th.start()
     cntwin.refresh()
     th.join()
     time.sleep(1)
+    param.get_dcpower("phase")
+    debug.set(adpKey, basePoint, param)
     
-    if AVERAGING == "True":
-      cv = pwa   # 現在のDC power
-    else:
-      cv = pw
-      
-    phaseList.append(adpKey.phase)
-    dcpowerList.append(cv)
-    cvList.append(cv)
-    pvList.append(pv)
-    
-    if float(cv) < float(pv):
-      pv = cv
-      minphase = adpKey.phase
-    minphaseList.append(minphase)
-  cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d iteration: %d" %((adpKey.att/2), adpKey.phase, i+1))
-  
-  # time_end = time.perf_counter()
-  # time_phase = time_end - time_sta
-  
+    if param.cv < param.pv:
+      param.pv = param.cv
+      basePoint.phase = adpKey.phase
+  # 最小のphase値を設定する
+  cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d step_att: %d total_step: %d" %((basePoint.att/2), basePoint.phase, param.step_phase, param.step_att, param.total_step))
+  cntwin.addstr(9,5, "全探索を開始")
+  cntwin.addstr(10,5,"phaseの自動調整を終了")
+  cntwin.refresh()
+  th = threading.Thread(target=mcu.senddata, args=(ch, basePoint.att, basePoint.phase,))
+  th.start()
+  th.join()
+  time.sleep(1)
+  """
   # 最小のphase値探索の検証用
   t = time.time()
   dt = datetime.datetime.fromtimestamp(t)
   debug_phase = pd.DataFrame([iterationList, phaseList, dcpowerList, cvList, pvList, minphaseList], 
                              index=['iteration', 'phase', 'DC power', 'cv', 'pv', 'minphase'])
-  
-  # 最小のphase値を設定する
-  th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, minphase,))
-  th.start()
-  cntwin.refresh()
-  th.join()
-  time.sleep(1)
+  """
   return
 
 
 
-def autoTune_att(mcu, ch, adpKey, cntwin):
-  # global time_att
-  # 最小phase探索の検証用のexcel出力リスト
-  iterationList = list(range(64))   # 0 ~ 32のイテレーションリストを作成
-  attList = []
-  dcpowerList = []
-  cvList = []
-  pvList = []
-  minattList = []
-  
-  # time_sta = time.perf_counter()
-  
+def autoTune_att(mcu, ch, adpKey, basePoint, cntwin, debug, param):
   # 初期化設定
-  cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d iteration: 0" %((adpKey.att/2), adpKey.phase))
+  cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d step_att: %d total_step: %d" %((adpKey.att/2), basePoint.phase, param.step_phase, param.step_att, param.total_step))
+  cntwin.addstr(9,5, "全探索を開始")
+  cntwin.addstr(10,5,"phaseの自動調整を終了")
   cntwin.addstr(11,5,"attの自動調整を開始")
   cntwin.refresh()
-  th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
-  th.start()
-  cntwin.refresh()
-  th.join()
-  time.sleep(3)
-  
-  if AVERAGING == "True":
-    pv = pwa   # 現在のphaseとatt設定で最小DC powerを初期化
-  else:
-    pv = pw
-  minatt = adpKey.att   # 最小のphase値を初期化
-  
-  # デバッグ用のリスト追加
-  attList.append(adpKey.att)
-  dcpowerList.append(pv)
-  cvList.append('0')
-  pvList.append(pv)
-  minattList.append(minatt)
   
   for i in range(63):
     if adpKey.att > 62:
@@ -542,41 +508,31 @@ def autoTune_att(mcu, ch, adpKey, cntwin):
     else:
       adpKey.att = min(63,adpKey.att + 1)
     
-    cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d iteration: %d" %((adpKey.att/2), adpKey.phase, i+1))
+    cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d step_att: %d total_step: %d" %((adpKey.att/2), basePoint.phase, param.step_phase, param.step_att, param.total_step))
+    cntwin.addstr(9,5, "全探索を開始")
+    cntwin.addstr(10,5,"phaseの自動調整を終了")
+    cntwin.addstr(11,5,"attの自動調整を開始")
     cntwin.refresh()
     
     # attを調整
-    th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
+    th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, basePoint.phase,))
     th.start()
     cntwin.refresh()
     th.join()
     time.sleep(1)
+    param.get_dcpower("att")
+    debug.set(adpKey, basePoint, param)
     
-    if AVERAGING == "True":
-      cv = pwa   # 現在のDC power
-    else:
-      cv = pw
-      
-    attList.append(adpKey.att)
-    dcpowerList.append(cv)
-    cvList.append(cv)
-    pvList.append(pv)
-    
-    if float(cv) < float(pv):
-      pv = cv
-      minatt = adpKey.att
-    minattList.append(minatt)
-  cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d iteration: %d" %((adpKey.att/2), adpKey.phase, i+1))
-  
-  # time_end = time.perf_counter()
-  # time_att = time_end - time_sta
-  
-  # 最小のatt値探索の検証用
-  debug_att = pd.DataFrame([iterationList, attList, dcpowerList, cvList, pvList, minattList], 
-                             index=['iteration', 'att', 'DC power', 'cv', 'pv', 'minatt'])
-
+    if param.cv < param.pv:
+      param.pv = param.cv
+      basePoint.att = adpKey.att
   # 最小のatt値を設定する
-  th = threading.Thread(target=mcu.senddata, args=(ch, minatt, adpKey.phase,))
+  cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d step_att: %d total_step: %d" %((basePoint.att/2), basePoint.phase, param.step_phase, param.step_att, param.total_step))
+  cntwin.addstr(9,5, "全探索を開始")
+  cntwin.addstr(10,5,"phaseの自動調整を終了")
+  cntwin.addstr(11,5,"attの自動調整を終了")
+  cntwin.refresh()
+  th = threading.Thread(target=mcu.senddata, args=(ch, basePoint.att, basePoint.phase,))
   th.start()
   cntwin.refresh()
   th.join()
@@ -586,13 +542,13 @@ def autoTune_att(mcu, ch, adpKey, cntwin):
 
 
 def stepTrack(mcu, ch, adpKey, cntwin):
-  threshold = -25.0
-  cntwin.erase()
-  cntwin.addstr(9,5, "step track制御を開始")
-  cntwin.refresh()
   # 初期化設定(phase, attともに0からスタート)
   adpKey.phase = 0
   adpKey.att = 0
+  threshold = -25.0
+  
+  cntwin.erase()
+  cntwin.addstr(9,5, "step track制御を開始")
   cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: 0 step_att: 0 total_step: 0" %((adpKey.att/2), adpKey.phase))
   cntwin.refresh()
   th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, adpKey.phase,))
@@ -600,17 +556,19 @@ def stepTrack(mcu, ch, adpKey, cntwin):
   cntwin.refresh()
   th.join()
   time.sleep(3)
+  
   # Pointの基準点basePointをphase, attをともに0で初期化
   basePoint = adapcanKeys(0, 0)
   debug = DebugFile()
   param = TrackParam()
   debug.set(adpKey, basePoint, param)
+  
   # 初期化時のDC powerを取得
   if AVERAGING == "True":
     param.pv = float(pwa)
   else:
     param.pv = float(pw)
-    
+  
   while True:
     # phase調整
     step_phase_tune(mcu, ch, adpKey, basePoint, cntwin, debug, param)
@@ -1300,9 +1258,9 @@ class DebugFile:
     self.att.append(adpKey.att)
     self.basePoint_phase.append(basePoint.phase)
     self.basePoint_att.append(basePoint.att)
-    self.cv.append(float(param.cv))
-    self.pv.append(float(param.pv))
-    self.delta.append(float(param.delta))
+    self.cv.append(param.cv)
+    self.pv.append(param.pv)
+    self.delta.append(param.delta)
     self.linear_model.append(param.linear_model)
     # self.increase_model.append(param.increase_model)
     # self.decrease_model.append(param.decrease_model)
@@ -1310,8 +1268,8 @@ class DebugFile:
   def output(self):
     t = time.time()
     dt = datetime.datetime.fromtimestamp(t)
-    debug_File = pd.DataFrame([self.total_step, self.step_phase, self.step_att, self.phase, self.att, self.basePoint_phase, self.basePoint_att, self.cv, self.pv, self.delta, self.direction, self.linear_model], index=['total_step', 'step_phase', 'step_att', 'phase', 'att', 'basePoint.phase', 'basePoint.att', 'current value', 'previous value', 'delta value', 'direction', 'linear_model'])
-    # 最小のphase値探索の検証excelを出力
+    debug_File = pd.DataFrame([self.total_step, self.step_phase, self.step_att, self.phase, self.att, self.basePoint_phase, self.basePoint_att, self.cv, self.pv, self.delta, self.direction, self.linear_model], index=['total_step', 'step_phase', 'step_att', 'phase', 'att', 'basePoint.phase', 'basePoint.att', 'current value(CV)', 'previous value(PV)', 'delta value', 'direction', 'linear_model'])
+    # 最小のDC power値探索の検証excelを出力
     debug_File.to_excel('stepTrack_Debug'+ str(dt) +'.xlsx')
     
 class TrackParam:
