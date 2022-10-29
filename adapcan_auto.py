@@ -28,6 +28,7 @@ import numpy as np
 import sklearn
 from sklearn.linear_model import LinearRegression
 import math
+from decimal import Decimal, ROUND_HALF_UP
 
 # after the execution of main retrieve the original stty 
 @contextlib.contextmanager
@@ -1243,9 +1244,9 @@ class DebugFile:
     self.step_phase.append(param.step_phase)
     self.step_att.append(param.step_att)
     self.direction.append(param.direction)
-    self.phase.append(adpKey.phase/130*11.4)
+    self.phase.append(Decimal(adpKey.phase/130*11.4).quantize(Decimal('0'), rounding=ROUND_HALF_UP))
     self.att.append(adpKey.att)
-    self.basePoint_phase.append(basePoint.phase/130*11.4)
+    self.basePoint_phase.append(Decimal(basePoint.phase/130*11.4).quantize(Decimal('0'), rounding=ROUND_HALF_UP))
     self.basePoint_att.append(basePoint.att)
     self.cv.append(param.cv)
     self.pv.append(param.pv)
