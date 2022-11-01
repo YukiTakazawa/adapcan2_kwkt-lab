@@ -587,7 +587,11 @@ def stepTrack(mcu, ch, adpKey, cntwin):
       cntwin.refresh()
       break
   
-  param.get_dcpower("None")
+  th = threading.Thread(target=mcu.senddata, args=(ch, basePoint.att, basePoint.phase,))
+  th.start()
+  th.join()
+  time.sleep(1)
+  param.get_dcpower("step")
   debug.set(adpKey, basePoint, param)
   # auto_Tuneの実行結果を出力(デバッグ用)
   if DEBUG == "True":
@@ -1313,9 +1317,6 @@ class TrackParam:
       self.step_phase += 1
     elif setting == "att":
       self.step_att += 1
-    elif setting == "None":
-      self.step_phase = self.basePoint.phase
-      self.step_att = self.basePoint.att
     else :
       self.step_phase = -999
       self.step_att = -999
