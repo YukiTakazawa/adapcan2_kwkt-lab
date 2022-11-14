@@ -827,6 +827,7 @@ def step_att_tune(mcu, ch, adpKey, basePoint, cntwin, debug, param):
   while True:
     if adpKey.att + 1 > 62:
       param.att_flag = "True"
+      param.debug_flag = "Off"
       break
     else :
       adpKey.att = min(63, adpKey.att + 1)
@@ -850,6 +851,7 @@ def step_att_tune(mcu, ch, adpKey, basePoint, cntwin, debug, param):
   while True:
     if adpKey.att + 1 > 62:
       param.att_flag = "True"
+      param.debug_flag = "Off"
       break
     else :
       adpKey.att = min(63, adpKey.att + 1)
