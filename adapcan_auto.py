@@ -844,6 +844,7 @@ def step_att_tune(mcu, ch, adpKey, basePoint, cntwin, debug, param):
     if param.cv < param.pv :
       param.pv = param.cv
       basePoint.att = adpKey.att
+      param.debug_flag = "On"
       break
   
   while True:
@@ -877,6 +878,7 @@ def step_att_tune(mcu, ch, adpKey, basePoint, cntwin, debug, param):
       th.start()
       th.join()
       time.sleep(1)
+      param.debug_flag = "Off"
       break
 
   """
@@ -1258,6 +1260,7 @@ class DebugFile:
     self.delta = []
     self.linear_model = []
     self.init_pv_delta_List = []
+    self.debug_flag_List = []
   
   def set(self, adpKey, basePoint, param):
     self.total_step.append(param.total_step)
@@ -1273,6 +1276,7 @@ class DebugFile:
     self.delta.append(param.delta)
     self.linear_model.append(param.linear_model)
     self.init_pv_delta_List.append(param.init_pv_delta)
+    self.debug_flag_List.append(param.debug_flag)
     
   def output(self, setting):
     t = time.time()
@@ -1306,6 +1310,7 @@ class TrackParam:
     else:
       self.init_pv = float(pw)
       self.pv = self.init_pv
+    self.debug_flag = None
     
   def increase_delta_append(self):
     self.increase_delta_List.append(self.delta)
