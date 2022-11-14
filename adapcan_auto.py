@@ -868,7 +868,10 @@ def step_att_tune(mcu, ch, adpKey, basePoint, cntwin, debug, param):
     time.sleep(1)
     param.get_dcpower("att")
     debug.set(adpKey, basePoint, param)
-    if param.cv >= param.pv :
+    if param.cv < param.pv :
+      param.pv = param.cv
+      basePoint.att = adpKey.att
+    elif param.cv >= param.pv :
       adpKey.att = max(0,adpKey.att-1)
       cntwin.erase()
       cntwin.addstr(9,5, "step track制御を開始")
