@@ -1270,7 +1270,7 @@ class DebugFile:
     self.step_att.append(param.step_att)
     self.direction.append(param.direction)
     self.phase.append(float(Decimal(adpKey.phase/130*11.4).quantize(Decimal('0'), rounding=ROUND_HALF_UP)))
-    self.att.append(adpKey.att)
+    self.att.append(adpKey.att/2)
     self.basePoint_phase.append(float(Decimal(basePoint.phase/130*11.4).quantize(Decimal('0'), rounding=ROUND_HALF_UP)))
     self.basePoint_att.append(basePoint.att)
     self.cv.append(param.cv)
