@@ -847,8 +847,28 @@ def step_att_tune(mcu, ch, adpKey, basePoint, cntwin, debug, param):
     if param.cv < param.pv :
       param.pv = param.cv
       basePoint.att = adpKey.att
-      flag == "True"
-    elif flag == "True" and param.cv >= param.pv :
+      break
+  
+  while True:
+    if adpKey.att + 1 > 62:
+      param.att_flag = "True"
+      break
+    else :
+      adpKey.att = min(63, adpKey.att + 1)
+    cntwin.erase()
+    cntwin.addstr(9,5, "step track制御を開始")
+    cntwin.addstr(10,5, "attの最小値探索を開始")
+    if flag == True:
+      cntwin.addstr(11,5, "attの極小値探索を開始")
+    cntwin.addstr(4,10,"Att: %3.1f dB  Phase: %4d step_phase: %d step_att: %d total_step: %d" %((adpKey.att/2), basePoint.phase, param.step_phase, param.step_att, param.total_step))
+    cntwin.refresh()
+    th = threading.Thread(target=mcu.senddata, args=(ch, adpKey.att, basePoint.phase,))
+    th.start()
+    th.join()
+    time.sleep(1)
+    param.get_dcpower("att")
+    debug.set(adpKey, basePoint, param)
+    if param.cv >= param.pv :
       adpKey.att = max(0,adpKey.att-1)
       cntwin.erase()
       cntwin.addstr(9,5, "step track制御を開始")
