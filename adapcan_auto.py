@@ -591,7 +591,7 @@ def stepTrack(mcu, ch, adpKey, cntwin):
   th.start()
   th.join()
   time.sleep(1)
-  param.get_dcpower("step")
+  param.get_dcpower("phase")
   debug.set(adpKey, basePoint, param)
   # auto_Tuneの実行結果を出力(デバッグ用)
   if DEBUG == "True":
