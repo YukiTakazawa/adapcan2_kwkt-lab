@@ -581,9 +581,9 @@ def stepTrack(mcu, ch, adpKey, cntwin):
       cntwin.addstr(15,5,"thresholdに到達しました", curses.color_pair(3))
       cntwin.refresh()
       break
-    elif param.total_step >= 1000:
+    elif param.total_step >= 300:
       cntwin.addstr(9,5,"stepTrack制御を終了\n\tPhaseを %4d, Attを %3.1fに調整しました\n\ttotal_step: %d\n\tQを押してください\n\t" %(basePoint.phase, basePoint.att/2, param.total_step), curses.color_pair(1))
-      cntwin.addstr(15,5,"total_stepが1000を超えました", curses.color_pair(3))
+      cntwin.addstr(15,5,"total_stepが300を超えました", curses.color_pair(3))
       cntwin.refresh()
       break
   
@@ -1102,7 +1102,6 @@ def step_att_tune(mcu, ch, adpKey, basePoint, cntwin, debug, param):
 def step_LinearRegression(mcu, ch, adpKey, basePoint, cntwin, debug, param):  # 最小値設定のbasePointを渡し，basePointから±nstep動かす
   param.delta_List_init()  # 線形回帰モデル作成のためのdelta_List[10]の初期化
   param.direction = "None"
-  param.linear_mode = "None"
   # phaseの探索
   for i in range(1,6):
     # +方向にstep調整
@@ -1272,13 +1271,13 @@ class TrackParam:
   def __init__(self):
     self.cv = 0.0
     self.pv = 0.0
-    self.direction = "None"
+    self.direction = "None"  # phaseの調整方向のパラメータ「increase or decrease」
     self.total_step = 0
     self.step_phase = 0
     self.step_att = 0
     self.delta = 0.0
-    self.linear_model = "None"
-    self.flag = "None"
+    self.linear_model = "None"  # 回帰直線の初期化
+    self.flag = "None"  # 
     self.increase_delta_List = []
     self.decrease_delta_List = []
     self.phase_flag = "False"
