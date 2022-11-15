@@ -542,7 +542,7 @@ def stepTrack(mcu, ch, adpKey, cntwin):
   # 初期化設定(phase, attともに0からスタート)
   adpKey.phase = 0
   adpKey.att = 0
-  threshold = -22.5
+  threshold = -25.0
   
   cntwin.erase()
   cntwin.addstr(9,5, "step track制御を開始")
