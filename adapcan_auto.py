@@ -1123,6 +1123,7 @@ def step_att_tune(mcu, ch, adpKey, basePoint, cntwin, debug, param):
 def step_LinearRegression(mcu, ch, adpKey, basePoint, cntwin, debug, param):  # 最小値設定のbasePointを渡し，basePointから±nstep動かす
   param.delta_List_init()  # 線形回帰モデル作成のためのdelta_List[10]の初期化
   param.direction = "None"
+  param.linear_model = "None"
   # phaseの探索
   for i in range(1,6):
     # +方向にstep調整
@@ -1253,6 +1254,7 @@ class DebugFile:
     self.step_phase = []
     self.step_att = []
     self.phase = []
+    self.phase_degree = []
     self.att = []
     self.direction = []
     self.basePoint_phase = []
@@ -1269,7 +1271,8 @@ class DebugFile:
     self.step_phase.append(param.step_phase)
     self.step_att.append(param.step_att)
     self.direction.append(param.direction)
-    self.phase.append(float(Decimal(adpKey.phase/130*11.4).quantize(Decimal('0'), rounding=ROUND_HALF_UP)))
+    self.phase.append(adpKey.phase)
+    self.phase_degree.append(float(Decimal(adpKey.phase/130*11.4).quantize(Decimal('0'), rounding=ROUND_HALF_UP)))
     self.att.append(adpKey.att/2)
     self.basePoint_phase.append(float(Decimal(basePoint.phase/130*11.4).quantize(Decimal('0'), rounding=ROUND_HALF_UP)))
     self.basePoint_att.append(basePoint.att)
