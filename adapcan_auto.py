@@ -1286,12 +1286,12 @@ class DebugFile:
   def output(self, setting):
     t = time.time()
     dt = datetime.datetime.fromtimestamp(t)
-    debug_File = pd.DataFrame([self.total_step, self.step_phase, self.step_att, self.phase, self.att, self.basePoint_phase, 
+    debug_File = pd.DataFrame([self.total_step, self.step_phase, self.step_att, self.phase, self.phase_degree, self.att, self.basePoint_phase, 
                                self.basePoint_att, self.cv, self.pv, self.delta, self.direction, self.linear_model, 
-                               self.init_pv_delta_List, self.debug_flag_List], index=['total_step', 'step_phase', 'step_att', 'phase', 'att', 
-                                                                'basePoint.phase', 'basePoint.att', 'current value(CV)', 
-                                                                'previous value(PV)', 'delta value', 'direction', 'linear_model', 
-                                                                'init_pvとの差分', 'Debug_flag'])
+                               self.init_pv_delta_List, self.debug_flag_List], index=['total_step', 'step_phase', 'step_att', 'phase_degree' 'phase', 'att', 
+                              'basePoint.phase', 'basePoint.att', 'current value(CV)', 
+                              'previous value(PV)', 'delta value', 'direction', 'linear_model', 
+                              'init_pvとの差分', 'Debug_flag'])
     # 最小のDC power値探索の検証excelを出力
     if setting == "fullSearch":
       debug_File.to_excel('fullSearch_Debug'+ str(dt) +'.xlsx')
