@@ -563,14 +563,14 @@ def stepTrack(mcu, ch, adpKey, cntwin):
   while True:
     # phase調整
     step_phase_tune(mcu, ch, adpKey, basePoint, cntwin, debug, param)
-    if param.att_flag == "False":
+    if param.att_end == "False":
       # att調整
       step_att_tune(mcu, ch, adpKey, basePoint, cntwin, debug, param)
-    elif param.att_flag == "True":
+    elif param.att_end == "True":
       pass
     else :
       cntwin.erase()
-      cntwin.addstr(15,0,"\tatt_flagに有効なパラメータが設定されていません", curses.color_pair(3))
+      cntwin.addstr(15,0,"\tatt_endに有効なパラメータが設定されていません", curses.color_pair(3))
       cntwin.refresh()
       time.sleep(10)
       return
@@ -634,12 +634,12 @@ def step_phase_tune(mcu, ch, adpKey, basePoint, cntwin, debug, param):
       time.sleep(1)
       param.get_dcpower("phase")
       debug.set(adpKey, basePoint, param)
-      param.flag = "True"
+      param.phase_flag = "True"
       
     elif np.sign(min(increase_delta_List)) == 1:  # 最小値がプラスの符号なら最小値の更新がなかったため，探索を続ける
       adpKey.phase = 4095 - adpKey.phase  # increase側へ調整するため，phase値をdecrease側から反転させる
-      #for i in range(11):
-      while True:
+      for i in range(11):
+      #while True:
       #  if adpKey.phase == basePoint.phase:
       #   break
         if adpKey.phase + 130 > 4095:
@@ -661,7 +661,7 @@ def step_phase_tune(mcu, ch, adpKey, basePoint, cntwin, debug, param):
         if param.cv < param.pv :
           param.pv = param.cv
           basePoint.phase = adpKey.phase
-          param.flag = "True"
+          param.phase_flag = "True"
           break
     else:
       cntwin.erase()
@@ -673,8 +673,8 @@ def step_phase_tune(mcu, ch, adpKey, basePoint, cntwin, debug, param):
     
     
     # さらに最小値が続くかの探索ループ(極小値探索)
-    if param.flag == "True":
-      param.flag = "False"
+    if param.phase_flag == "True":
+      param.phase_flag = "False"
       while True:
         #if adpKey.phase == basePoint.phase:
         #  break
@@ -737,10 +737,10 @@ def step_phase_tune(mcu, ch, adpKey, basePoint, cntwin, debug, param):
       time.sleep(1)
       param.get_dcpower("phase")
       debug.set(adpKey, basePoint, param)
-      param.flag = "True"
+      param.phase_flag = "True"
     elif np.sign(min(decrease_delta_List)) == 1:  # 最小値がプラスの符号なら最小値の更新がなかったため，探索を続ける
-      #for i in range(11):
-      while True:
+      for i in range(11):
+      #while True:
       #  if adpKey.phase == basePoint.phase:
       #    break
         if adpKey.phase - 130 < 0:
@@ -761,7 +761,7 @@ def step_phase_tune(mcu, ch, adpKey, basePoint, cntwin, debug, param):
         if param.cv < param.pv :
           param.pv = param.cv
           basePoint.phase = adpKey.phase
-          param.flag = "True"
+          param.phase_flag = "True"
           break
     else:
       cntwin.erase()
@@ -771,8 +771,8 @@ def step_phase_tune(mcu, ch, adpKey, basePoint, cntwin, debug, param):
       return
       
       
-    if param.flag == "True":
-      param.flag = "False"
+    if param.phase_flag == "True":
+      param.phase_flag = "False"
     # さらに最小値が続くかの探索ループ
       while True:
       #  if adpKey.phase == basePoint.phase:
@@ -826,7 +826,7 @@ def step_att_tune(mcu, ch, adpKey, basePoint, cntwin, debug, param):
   adpKey.att = basePoint.att
   while True:
     if adpKey.att + 1 > 62:
-      param.att_flag = "True"
+      param.att_end = "True"
       param.debug_flag = "Off"
       break
     else :
@@ -850,7 +850,7 @@ def step_att_tune(mcu, ch, adpKey, basePoint, cntwin, debug, param):
   
   while True:
     if adpKey.att + 1 > 62:
-      param.att_flag = "True"
+      param.att_end = "True"
       param.debug_flag = "Off"
       break
     else :
@@ -1265,6 +1265,8 @@ class DebugFile:
     self.linear_model = []
     self.init_pv_delta_List = []
     self.debug_flag_List = []
+    self.phase_flag_List = []
+    self.att_end_List = []
   
   def set(self, adpKey, basePoint, param):
     self.total_step.append(param.total_step)
@@ -1282,16 +1284,18 @@ class DebugFile:
     self.linear_model.append(param.linear_model)
     self.init_pv_delta_List.append(param.init_pv_delta)
     self.debug_flag_List.append(param.debug_flag)
+    self.phase_flag_List.append(param.phase_flag)
+    self.att_end_List.append(param.att_end)
     
   def output(self, setting):
     t = time.time()
     dt = datetime.datetime.fromtimestamp(t)
-    debug_File = pd.DataFrame([self.total_step, self.step_phase, self.step_att, self.phase, self.phase_degree, self.att, self.basePoint_phase, 
-                               self.basePoint_att, self.cv, self.pv, self.delta, self.direction, self.linear_model, 
-                               self.init_pv_delta_List, self.debug_flag_List], index=['total_step', 'step_phase', 'step_att', 'phase_degree', 'phase', 'att', 
-                              'basePoint.phase', 'basePoint.att', 'current value(CV)', 
-                              'previous value(PV)', 'delta value', 'direction', 'linear_model', 
-                              'init_pvとの差分', 'Debug_flag'])
+    debug_File = pd.DataFrame([self.total_step, self.step_phase, self.step_att, self.phase, self.phase_degree, self.att, 
+                               self.basePoint_phase, self.basePoint_att, self.cv, self.pv, self.delta, self.direction, 
+                               self.linear_model, self.init_pv_delta_List, self.debug_flag_List, self.phase_flag_List, self.att_end_List], index=['total_step', 
+                              'step_phase', 'step_att', 'phase_degree', 'phase', 'att', 'basePoint.phase', 'basePoint.att', 
+                              'current value(CV)', 'previous value(PV)', 'delta value', 'direction', 'linear_model', 
+                              'init_pvとの差分', 'Debug_flag', 'phase_flag', 'att_end'])
     # 最小のDC power値探索の検証excelを出力
     if setting == "fullSearch":
       debug_File.to_excel('fullSearch_Debug'+ str(dt) +'.xlsx')
@@ -1312,7 +1316,7 @@ class TrackParam:
     self.increase_delta_List = []
     self.decrease_delta_List = []
     self.phase_flag = "False"
-    self.att_flag = "False"
+    self.att_end = "False"
     self.init_pv_delta = 0.0
     if AVERAGING == "True":
       self.init_pv = float(pwa)
@@ -1320,7 +1324,9 @@ class TrackParam:
     else:
       self.init_pv = float(pw)
       self.pv = self.init_pv
-    self.debug_flag = None
+    self.debug_flag = "None"
+    self.phase_flag = "None"
+    self.att_end = "None"
     
   def increase_delta_append(self):
     self.increase_delta_List.append(self.delta)
