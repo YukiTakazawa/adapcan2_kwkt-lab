@@ -714,7 +714,7 @@ def step_phase_tune(mcu, ch, adpKey, basePoint, cntwin, debug, param):
           th.join()
           time.sleep(1)
           break
-        
+  
   elif param.direction == "decrease":  # increase側と同様に
     index = len(param.decrease_delta_List)
     decrease_delta_List = param.decrease_delta_List[index-5:index]
@@ -819,6 +819,7 @@ def step_phase_tune(mcu, ch, adpKey, basePoint, cntwin, debug, param):
     cntwin.refresh()
     time.sleep(10)
     return
+  adpKey.phase = basePoint.phase  # phase調整後にphaseシフト量をbasePointのphaseで更新する
 
 
 
@@ -1293,7 +1294,7 @@ class DebugFile:
     debug_File = pd.DataFrame([self.total_step, self.step_phase, self.step_att, self.phase, self.phase_degree, self.att, 
                                self.basePoint_phase, self.basePoint_att, self.cv, self.pv, self.delta, self.direction, 
                                self.linear_model, self.init_pv_delta_List, self.debug_flag_List, self.phase_flag_List, self.att_end_List], index=['total_step', 
-                              'step_phase', 'step_att', 'phase_degree', 'phase', 'att', 'basePoint.phase', 'basePoint.att', 
+                              'step_phase', 'step_att', 'phase', 'phase_degree', 'att', 'basePoint.phase', 'basePoint.att', 
                               'current value(CV)', 'previous value(PV)', 'delta value', 'direction', 'linear_model', 
                               'init_pvとの差分', 'Debug_flag', 'phase_flag', 'att_end'])
     # 最小のDC power値探索の検証excelを出力
