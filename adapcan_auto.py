@@ -1325,8 +1325,8 @@ class TrackParam:
       self.init_pv = float(pw)
       self.pv = self.init_pv
     self.debug_flag = "None"
-    self.phase_flag = "None"
-    self.att_end = "None"
+    self.phase_flag = "None"  
+    self.att_end = "False"  # 初期値はFalse
     
   def increase_delta_append(self):
     self.increase_delta_List.append(self.delta)
