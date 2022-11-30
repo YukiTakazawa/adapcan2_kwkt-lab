@@ -824,6 +824,7 @@ def step_phase_tune(mcu, ch, adpKey, basePoint, cntwin, debug, param):
 
 
 def step_att_tune(mcu, ch, adpKey, basePoint, cntwin, debug, param):
+  param.linear_model = "None"
   adpKey.att = basePoint.att
   while True:
     if adpKey.att + 1 > 62:
@@ -1259,6 +1260,7 @@ class DebugFile:
     self.att = []
     self.direction = []
     self.basePoint_phase = []
+    self.basePoint_phase_degree = []
     self.basePoint_att = []
     self.cv = []
     self.pv = []
@@ -1277,7 +1279,8 @@ class DebugFile:
     self.phase.append(adpKey.phase)
     self.phase_degree.append(float(Decimal(adpKey.phase/130*11.4).quantize(Decimal('0'), rounding=ROUND_HALF_UP)))
     self.att.append(adpKey.att/2)
-    self.basePoint_phase.append(float(Decimal(basePoint.phase/130*11.4).quantize(Decimal('0'), rounding=ROUND_HALF_UP)))
+    self.basePoint_phase.append(basePoint.phase)
+    self.basePoint_phase_degree.append(float(Decimal(basePoint.phase/130*11.4).quantize(Decimal('0'), rounding=ROUND_HALF_UP)))
     self.basePoint_att.append(basePoint.att)
     self.cv.append(param.cv)
     self.pv.append(param.pv)
@@ -1292,9 +1295,9 @@ class DebugFile:
     t = time.time()
     dt = datetime.datetime.fromtimestamp(t)
     debug_File = pd.DataFrame([self.total_step, self.step_phase, self.step_att, self.phase, self.phase_degree, self.att, 
-                               self.basePoint_phase, self.basePoint_att, self.cv, self.pv, self.delta, self.direction, 
+                               self.basePoint_phase, self.basePoint_phase_degree, self.basePoint_att, self.cv, self.pv, self.delta, self.direction, 
                                self.linear_model, self.init_pv_delta_List, self.debug_flag_List, self.phase_flag_List, self.att_end_List], index=['total_step', 
-                              'step_phase', 'step_att', 'phase', 'phase_degree', 'att', 'basePoint.phase', 'basePoint.att', 
+                              'step_phase', 'step_att', 'phase', 'phase_degree', 'att', 'basePoint.phase', 'basePoint.phase_degree', 'basePoint.att', 
                               'current value(CV)', 'previous value(PV)', 'delta value', 'direction', 'linear_model', 
                               'init_pvとの差分', 'Debug_flag', 'phase_flag', 'att_end'])
     # 最小のDC power値探索の検証excelを出力
