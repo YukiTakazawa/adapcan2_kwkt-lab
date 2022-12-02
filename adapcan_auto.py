@@ -898,6 +898,7 @@ def step_LinearRegression(mcu, ch, adpKey, basePoint, cntwin, debug, param):  # 
       adpKey.phase = basePoint.phase + 130*i -4095
     else :
       adpKey.phase = min(4095, basePoint.phase+130*i)
+    param.increase_phase_List.append(adpKey.phase)
     cntwin.erase()
     cntwin.addstr(9,5, "step track制御を開始")
     cntwin.addstr(10,5, "phaseの調整方向アルゴリズムを開始")
@@ -915,6 +916,7 @@ def step_LinearRegression(mcu, ch, adpKey, basePoint, cntwin, debug, param):  # 
       adpKey.phase = 4095 - basePoint.phase - 130*i
     else :
       adpKey.phase = max(0, basePoint.phase - 130*i)
+    param.decrease_phase_List.append(adpKey.phase)
     cntwin.erase()
     cntwin.addstr(9,5, "step track制御を開始")
     cntwin.addstr(10,5, "phaseの調整方向アルゴリズムを開始")
@@ -927,10 +929,13 @@ def step_LinearRegression(mcu, ch, adpKey, basePoint, cntwin, debug, param):  # 
     param.get_dcpower("phase")
     param.decrease_delta_append()
     debug.set(adpKey, basePoint, param)
+  
   linear_model = LinearRegression()
   param.decrease_delta_List.reverse()
-  linear_model_List = param.decrease_delta_List + param.increase_delta_List
-  linear_model.fit(pd.DataFrame(range(1,11)), pd.DataFrame(linear_model_List))
+  param.decrease_phase_List.reverse()
+  linear_delta_List = param.decrease_delta_List + param.increase_delta_List
+  linear_phase_List = param.decrease_phase_List + param.increase_phase_List
+  linear_model.fit(pd.DataFrame(linear_phase_List), pd.DataFrame(linear_delta_List))
   param.linear_model_output(linear_model.coef_)
   param.decrease_delta_List.reverse()
   if np.sign(linear_model.coef_) == 1:
@@ -1031,6 +1036,8 @@ class TrackParam:
     self.debug_flag = "None"
     self.phase_flag = "None"  
     self.att_end = "False"  # 初期値はFalse
+    self.increase_phase_List = []
+    self.decrease_phase_List = []
     
   def increase_delta_append(self):
     self.increase_delta_List.append(self.delta)
